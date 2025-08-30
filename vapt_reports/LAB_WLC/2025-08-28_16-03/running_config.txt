@@ -1,0 +1,2302 @@
+Building configuration...
+
+Current configuration : 90213 bytes
+!
+! Last configuration change at 15:08:36 IST Thu Aug 28 2025 by ajay
+! NVRAM config last updated at 15:48:40 IST Wed Aug 20 2025 by space
+!
+version 17.12
+service timestamps debug datetime msec localtime
+service timestamps log datetime msec localtime
+platform qfp utilization monitor load 80
+platform sslvpn use-pd
+platform punt-keepalive disable-kernel-core
+platform console virtual
+!
+hostname LAB-WLC
+!
+boot-start-marker
+boot system bootflash:packages.conf
+boot-end-marker
+!
+!
+vrf definition Mgmt-intf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+no logging console
+aaa new-model
+!
+!
+aaa authentication login default local
+aaa authorization exec default local 
+aaa authorization auth-proxy default group ise 
+aaa authorization credential-download wcm_loc_serv_cert local 
+!
+!
+aaa attribute list GUEST
+ attribute type ssid "LAB_access"
+!
+aaa attribute list wlan_lobby_access
+!
+aaa attribute list cmx_MAC_ADDRESS
+!
+aaa attribute list cmx_000C29715189
+ attribute type password B986D3744123A8551C33E0AA8EAEC644556039F49AF16854240799C3E94CC3DF
+!
+aaa server radius dynamic-author
+ server-key Nipun@123
+!
+aaa session-id common
+clock timezone IST 5 30
+clock calendar-valid
+vtp mode off
+!
+!
+!
+!
+ip nbar attribute-map youtube-map
+ attribute business-relevance business-relevant
+ attribute traffic-class multimedia-streaming
+ attribute category custom-category
+!
+!
+ip nbar attribute-set youtube youtube-map
+!
+ip name-server 172.31.1.176
+!
+!
+!
+no ip igmp snooping vlan 13
+no ip igmp snooping vlan 14
+no ip igmp snooping vlan 600
+no ip igmp snooping vlan 400
+no ip igmp snooping vlan 50
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+!
+parameter-map type subscriber attribute-to-service Local_Profiling_Map-param
+ 1 map device-type eq "Android"
+  1 service-template Local_Profiling
+!
+parameter-map type webauth global
+ type webauth
+ intercept-https-enable
+ trustpoint CISCO_IDEVID_SUDI
+!
+!
+parameter-map type webauth GUEST_WEB
+ type webauth
+ logout-window-disabled
+ success-window-disable
+!
+!
+parameter-map type webauth NIP_WEB
+ type webauth
+ logout-window-disabled
+ success-window-disable
+!
+access-session mac-move deny
+!
+flow exporter wireless-local-exporter
+ destination local wlc
+!
+!
+flow monitor wireless-avc-basic
+ exporter wireless-local-exporter
+ cache timeout active 60
+ record wireless avc basic
+!
+!
+flow monitor wireless-avc-basic-ipv6
+ exporter wireless-local-exporter
+ cache timeout active 60
+ record wireless avc ipv6 basic
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+pae
+!
+!
+crypto pki server WLC_CA
+ database archive pkcs12 password 7 12370C0707052C55787864
+ issuer-name O=Cisco Virtual Wireless LAN Controller, CN=CA-vWLC_LAB-WLC
+ grant auto
+ hash sha256
+ lifetime certificate 3652
+ lifetime ca-certificate 3652
+ shutdown
+!
+crypto pki trustpoint SLA-TrustPoint
+ enrollment pkcs12
+ revocation-check crl
+ hash sha256
+!
+crypto pki trustpoint WLC_CA
+ revocation-check crl
+ rsakeypair WLC_CA
+ hash sha512
+!
+crypto pki trustpoint LAB-WLC_WLC_TP
+ enrollment url http://172.16.0.248:80
+ serial-number
+ password 7 002A1A1611552B575D720C
+ subject-name O=Cisco Virtual Wireless LAN Controller, CN=LAB-WLC_WLC_TP
+ revocation-check crl
+ rsakeypair LAB-WLC_WLC_TP
+ hash sha256
+ eku request server-auth client-auth 
+!
+crypto pki trustpoint DNAC-CA
+ enrollment mode ra
+ enrollment terminal
+ usage ssl-client
+ revocation-check crl none
+ source interface Vlan400
+ hash sha512
+!
+crypto pki trustpoint sdn-network-infra-iwan
+ enrollment url http://172.16.0.96:80/ejbca/publicweb/apply/scep/sdnscep
+ fqdn LAB-WLC
+ subject-name CN=C9800-CL-K9_9X84XK0KTXT_sdn-network-infra-iwan
+ revocation-check crl
+ source interface Vlan400
+ rsakeypair sdn-network-infra-iwan
+ auto-enroll 80 regenerate
+ hash sha512
+!
+!
+crypto pki certificate chain SLA-TrustPoint
+ certificate ca 01
+  30820321 30820209 A0030201 02020101 300D0609 2A864886 F70D0101 0B050030 
+  32310E30 0C060355 040A1305 43697363 6F312030 1E060355 04031317 43697363 
+  6F204C69 63656E73 696E6720 526F6F74 20434130 1E170D31 33303533 30313934 
+  3834375A 170D3338 30353330 31393438 34375A30 32310E30 0C060355 040A1305 
+  43697363 6F312030 1E060355 04031317 43697363 6F204C69 63656E73 696E6720 
+  526F6F74 20434130 82012230 0D06092A 864886F7 0D010101 05000382 010F0030 
+  82010A02 82010100 A6BCBD96 131E05F7 145EA72C 2CD686E6 17222EA1 F1EFF64D 
+  CBB4C798 212AA147 C655D8D7 9471380D 8711441E 1AAF071A 9CAE6388 8A38E520 
+  1C394D78 462EF239 C659F715 B98C0A59 5BBB5CBD 0CFEBEA3 700A8BF7 D8F256EE 
+  4AA4E80D DB6FD1C9 60B1FD18 FFC69C96 6FA68957 A2617DE7 104FDC5F EA2956AC 
+  7390A3EB 2B5436AD C847A2C5 DAB553EB 69A9A535 58E9F3E3 C0BD23CF 58BD7188 
+  68E69491 20F320E7 948E71D7 AE3BCC84 F10684C7 4BC8E00F 539BA42B 42C68BB7 
+  C7479096 B4CB2D62 EA2F505D C7B062A4 6811D95B E8250FC4 5D5D5FB8 8F27D191 
+  C55F0D76 61F9A4CD 3D992327 A8BB03BD 4E6D7069 7CBADF8B DF5F4368 95135E44 
+  DFC7C6CF 04DD7FD1 02030100 01A34230 40300E06 03551D0F 0101FF04 04030201 
+  06300F06 03551D13 0101FF04 05300301 01FF301D 0603551D 0E041604 1449DC85 
+  4B3D31E5 1B3E6A17 606AF333 3D3B4C73 E8300D06 092A8648 86F70D01 010B0500 
+  03820101 00507F24 D3932A66 86025D9F E838AE5C 6D4DF6B0 49631C78 240DA905 
+  604EDCDE FF4FED2B 77FC460E CD636FDB DD44681E 3A5673AB 9093D3B1 6C9E3D8B 
+  D98987BF E40CBD9E 1AECA0C2 2189BB5C 8FA85686 CD98B646 5575B146 8DFC66A8 
+  467A3DF4 4D565700 6ADF0F0D CF835015 3C04FF7C 21E878AC 11BA9CD2 55A9232C 
+  7CA7B7E6 C1AF74F6 152E99B7 B1FCF9BB E973DE7F 5BDDEB86 C71E3B49 1765308B 
+  5FB0DA06 B92AFE7F 494E8A9E 07B85737 F3A58BE1 1A48A229 C37C1E69 39F08678 
+  80DDCD16 D6BACECA EEBC7CF9 8428787B 35202CDC 60E4616A B623CDBD 230E3AFB 
+  418616A9 4093E049 4D10AB75 27E86F73 932E35B5 8862FDAE 0275156F 719BB2F0 
+  D697DF7F 28
+  	quit
+crypto pki certificate chain WLC_CA
+ certificate ca 01
+  30820372 3082025A A0030201 02020101 300D0609 2A864886 F70D0101 0B050030 
+  4A311830 16060355 04030C0F 43412D76 574C435F 4C41422D 574C4331 2E302C06 
+  0355040A 13254369 73636F20 56697274 75616C20 57697265 6C657373 204C414E 
+  20436F6E 74726F6C 6C657230 1E170D32 35303830 34303530 3634375A 170D3335 
+  30383034 30353036 34375A30 4A311830 16060355 04030C0F 43412D76 574C435F 
+  4C41422D 574C4331 2E302C06 0355040A 13254369 73636F20 56697274 75616C20 
+  57697265 6C657373 204C414E 20436F6E 74726F6C 6C657230 82012230 0D06092A 
+  864886F7 0D010101 05000382 010F0030 82010A02 82010100 E4A4F510 A128A8BE 
+  20722593 15D6ED77 B3660EEA E6869299 10FCA7A0 851ECC66 6EE9B96C 10FFFCA4 
+  04C7792A 1C1DB81D 738763DE 4584C1CE DC88A9F8 FEA7A834 9AAE8C67 BA13B62C 
+  30B25C50 A75693CE 8A811E3C D5020F58 D0A951E6 8CFF7CBA 696460B8 E8C4AD23 
+  8C71ECD6 AB16189C C09D4334 06CB0859 7C111CD9 9C5E1668 032B5CB0 F505A030 
+  5E7226F4 AEAB6C58 34A54D7D 19C8A15C 4AEF2C89 6FEC69A0 5A219727 56EAD520 
+  5D36707B 62229F1E ACDFB03D B3F6F4E1 7A369CB5 8CB9D3E6 0F9A3DD3 EB813813 
+  07760EA7 F68CF833 213CB35F 1375A181 878820E0 4BB1AB61 16F59AB5 8F89A2AA 
+  BF014756 B7A8737D 7D0C0AB3 CC7AC57C AC34102A 23AB9357 02030100 01A36330 
+  61300F06 03551D13 0101FF04 05300301 01FF300E 0603551D 0F0101FF 04040302 
+  0186301F 0603551D 23041830 16801430 AC558694 9228734B 19F2ED94 86E5E54B 
+  9F06B230 1D060355 1D0E0416 041430AC 55869492 28734B19 F2ED9486 E5E54B9F 
+  06B2300D 06092A86 4886F70D 01010B05 00038201 0100BEA5 1FCA6B3F 2402CD2D 
+  C79EF320 7EF7AC8F 598FB37D 55742030 E3D3C08D CB132158 4FE9B99B 814DC7F6 
+  198B036C AF8938FF 775E2CCB 722721E1 F01BEC23 13B2586B E89C3A27 E48EECDC 
+  519F4A79 4DE88370 3BA885F6 5B79C0F3 11E38085 8A8E1398 8AD441A5 D2FEA384 
+  5E0379A0 8402257A 6CE1102D 6024D6B4 1147CDD6 4EE51662 C87A0664 80474C09 
+  BD21B61B 894EEE0E 2F4FBF2A DC664643 CC8A54DF 8D9F96B5 087DD726 03F1BBCD 
+  E15D22B5 E0AB7F8A 99C8F700 CFE963E6 18A4EF5F 1641890D 8DC24766 1A0BCB06 
+  7F0197A7 A9E7B794 6B4F7B7E 0DFE0225 98BA36D0 AD2443B8 11D16496 8F2A4899 
+  487DFEDD 1126D682 BD56F53D 390BBE78 63D50DF8 B7BB
+  	quit
+crypto pki certificate chain LAB-WLC_WLC_TP
+ certificate 02
+  308203AC 30820294 A0030201 02020102 300D0609 2A864886 F70D0101 0B050030 
+  4A311830 16060355 04030C0F 43412D76 574C435F 4C41422D 574C4331 2E302C06 
+  0355040A 13254369 73636F20 56697274 75616C20 57697265 6C657373 204C414E 
+  20436F6E 74726F6C 6C657230 1E170D32 35303830 34303530 3731305A 170D3335 
+  30383034 30353036 34375A30 79311730 15060355 04030C0E 4C41422D 574C435F 
+  574C435F 5450312E 302C0603 55040A13 25436973 636F2056 69727475 616C2057 
+  6972656C 65737320 4C414E20 436F6E74 726F6C6C 6572312E 30120603 55040513 
+  0B395838 34584B30 4B545854 30180609 2A864886 F70D0109 02160B4C 41422D57 
+  4C432E4C 41423082 0122300D 06092A86 4886F70D 01010105 00038201 0F003082 
+  010A0282 010100BA 44BBE5FD 22D955A7 3038CA22 1656AC32 257C484C 6C1B4C21 
+  D86F9E4E 278C65C5 5264608C 97554BE4 9C824795 C8E536B8 037CD97C B9BDBE72 
+  B64922DE 29758667 2B2C7095 0DC94745 43FF57FB CE0C11AB 25FFC02D E94D34E0 
+  AAB175CB 0980A56D F840C8FF DBCCA654 BBBB4AE0 CCCED40B BF250406 263A5BBB 
+  D4564514 B4E573A7 8DCA3AEC 6081EA57 6E55148E 6ECDCDCA 751B13FC B12C63AF 
+  9B589A01 5F8194A2 093F1731 E5FC7D95 E5D30236 9BA483B8 1D526D06 87F171B4 
+  6F293B5C A03A05B0 6BC17D79 D191EA83 C3994D7F CEAE3368 A4A16F25 F3034EF3 
+  9040B025 1FDDC03E A5DFD97D 5DCFC27A D6AD6D7C 516B7FD8 A7758453 CF6AFF13 
+  8FD99A5E 44C60D02 03010001 A36E306C 300B0603 551D0F04 04030205 A0301D06 
+  03551D25 04163014 06082B06 01050507 03010608 2B060105 05070302 301F0603 
+  551D2304 18301680 1430AC55 86949228 734B19F2 ED9486E5 E54B9F06 B2301D06 
+  03551D0E 04160414 596EEB6E 004BBDA1 E8343105 E1C6F9EA 1DA4BEAA 300D0609 
+  2A864886 F70D0101 0B050003 82010100 9EA847ED BAF4FB43 BF1E0103 5A5328F3 
+  E1802B6A 98C3185A 746C8A67 051AB054 94E4230A 13E0E0E9 28A1F69D 8E513C17 
+  D301C9AF 1D269BE2 80955448 9153ABD2 91DCF05B 50A9CF3A 2DA65230 D4C7C62E 
+  D03039FF 3D886A24 8108B999 60863899 B71E5681 FA334A4B B6DD4533 9D5F8DF4 
+  CE405F09 4D8B9BED A6A49CB1 71700937 36FF8133 2C923579 34F03555 AF39267A 
+  445F80EC A3B2AD72 0D345392 EEB8811B B75D34C3 03E1FDE1 2976B7E8 A8127E37 
+  23E9F0F8 1FEF8A33 522FB7F0 45B54532 7811DA3B 522855A9 E9A3AE81 610FC344 
+  F6867D23 B5B3F5EA 2E78218E D053C1C1 9F2D776C 8A565F4B 8FA00698 96824030 
+  EBBA1383 A3544A12 DB719CF5 DEDEBF41
+  	quit
+ certificate ca 01
+  30820372 3082025A A0030201 02020101 300D0609 2A864886 F70D0101 0B050030 
+  4A311830 16060355 04030C0F 43412D76 574C435F 4C41422D 574C4331 2E302C06 
+  0355040A 13254369 73636F20 56697274 75616C20 57697265 6C657373 204C414E 
+  20436F6E 74726F6C 6C657230 1E170D32 35303830 34303530 3634375A 170D3335 
+  30383034 30353036 34375A30 4A311830 16060355 04030C0F 43412D76 574C435F 
+  4C41422D 574C4331 2E302C06 0355040A 13254369 73636F20 56697274 75616C20 
+  57697265 6C657373 204C414E 20436F6E 74726F6C 6C657230 82012230 0D06092A 
+  864886F7 0D010101 05000382 010F0030 82010A02 82010100 E4A4F510 A128A8BE 
+  20722593 15D6ED77 B3660EEA E6869299 10FCA7A0 851ECC66 6EE9B96C 10FFFCA4 
+  04C7792A 1C1DB81D 738763DE 4584C1CE DC88A9F8 FEA7A834 9AAE8C67 BA13B62C 
+  30B25C50 A75693CE 8A811E3C D5020F58 D0A951E6 8CFF7CBA 696460B8 E8C4AD23 
+  8C71ECD6 AB16189C C09D4334 06CB0859 7C111CD9 9C5E1668 032B5CB0 F505A030 
+  5E7226F4 AEAB6C58 34A54D7D 19C8A15C 4AEF2C89 6FEC69A0 5A219727 56EAD520 
+  5D36707B 62229F1E ACDFB03D B3F6F4E1 7A369CB5 8CB9D3E6 0F9A3DD3 EB813813 
+  07760EA7 F68CF833 213CB35F 1375A181 878820E0 4BB1AB61 16F59AB5 8F89A2AA 
+  BF014756 B7A8737D 7D0C0AB3 CC7AC57C AC34102A 23AB9357 02030100 01A36330 
+  61300F06 03551D13 0101FF04 05300301 01FF300E 0603551D 0F0101FF 04040302 
+  0186301F 0603551D 23041830 16801430 AC558694 9228734B 19F2ED94 86E5E54B 
+  9F06B230 1D060355 1D0E0416 041430AC 55869492 28734B19 F2ED9486 E5E54B9F 
+  06B2300D 06092A86 4886F70D 01010B05 00038201 0100BEA5 1FCA6B3F 2402CD2D 
+  C79EF320 7EF7AC8F 598FB37D 55742030 E3D3C08D CB132158 4FE9B99B 814DC7F6 
+  198B036C AF8938FF 775E2CCB 722721E1 F01BEC23 13B2586B E89C3A27 E48EECDC 
+  519F4A79 4DE88370 3BA885F6 5B79C0F3 11E38085 8A8E1398 8AD441A5 D2FEA384 
+  5E0379A0 8402257A 6CE1102D 6024D6B4 1147CDD6 4EE51662 C87A0664 80474C09 
+  BD21B61B 894EEE0E 2F4FBF2A DC664643 CC8A54DF 8D9F96B5 087DD726 03F1BBCD 
+  E15D22B5 E0AB7F8A 99C8F700 CFE963E6 18A4EF5F 1641890D 8DC24766 1A0BCB06 
+  7F0197A7 A9E7B794 6B4F7B7E 0DFE0225 98BA36D0 AD2443B8 11D16496 8F2A4899 
+  487DFEDD 1126D682 BD56F53D 390BBE78 63D50DF8 B7BB
+  	quit
+crypto pki certificate chain DNAC-CA
+ certificate ca 7BF1D2EC4FD00D20FB0A852AED9F417E275B3293
+  308203A5 3082028D A0030201 0202147B F1D2EC4F D00D20FB 0A852AED 9F417E27 
+  5B329330 0D06092A 864886F7 0D01010B 05003062 312D302B 06035504 030C2434 
+  63613561 6537332D 61643861 2D356365 302D3865 66302D62 66656631 31643065 
+  65393331 16301406 0355040A 0C0D4369 73636F20 53797374 656D7331 19301706 
+  0355040B 0C104369 73636F20 444E4120 43656E74 6572301E 170D3234 30393039 
+  31333136 30345A17 0D323730 36303631 33313630 345A3062 312D302B 06035504 
+  030C2434 63613561 6537332D 61643861 2D356365 302D3865 66302D62 66656631 
+  31643065 65393331 16301406 0355040A 0C0D4369 73636F20 53797374 656D7331 
+  19301706 0355040B 0C104369 73636F20 444E4120 43656E74 65723082 0122300D 
+  06092A86 4886F70D 01010105 00038201 0F003082 010A0282 010100D9 2B02A637 
+  803D1AEF 6269C5D7 0DB43F6D CE7795C9 A9D6CE3F 09370993 911A4A03 2FD01520 
+  109CE2D2 2092870A CC653061 99D3BE7D 0A1D2B64 D600E376 1A8C4B17 A5B4E916 
+  BE0B4319 7E126B3C 9198B336 FCC8620A D9756B01 24182A11 BE69B819 EF26F76C 
+  3C3D56D9 C433C8BF 756B5D49 D6D88213 845F183E CF5659B8 502D43D7 DB170A79 
+  D585F473 EC5FB8B1 FDF5DFB4 D53605D4 152ABAAE E2E3A969 BB0731FC 8D4BF765 
+  473A8982 F7A7F901 923F8EE0 B1C9F9E4 EB59BE56 A4B1B284 B4BE15D1 CEE8C002 
+  E147FD24 74F2EB00 1E01ED78 DFF74422 CF58790C 5B378832 733EE9F4 4FC774AE 
+  48909A41 B98B0A30 DBA7F05C DEA86306 836FAC5A 3918FDA1 35948102 03010001 
+  A3533051 301D0603 551D0E04 160414E7 A0B63A7C 2D5B7B45 EE6B6DDE 08B45E1D 
+  60DA1930 1F060355 1D230418 30168014 E7A0B63A 7C2D5B7B 45EE6B6D DE08B45E 
+  1D60DA19 300F0603 551D1301 01FF0405 30030101 FF300D06 092A8648 86F70D01 
+  010B0500 03820101 0031C162 CD578B1A E37B9357 232B996C 3B5007C4 0E769BF9 
+  154FAD91 6452A4DC F80421C6 674C9535 EBB42552 373596F8 26D624D2 A8685071 
+  B571DECA EE666F64 5909DD56 11315C57 4C08AD6A 31223646 D4F9AAC8 FBB28421 
+  C2A1C852 9D42B829 973BA495 17A5F75F 1BF0C93A 614CAFDF 9A47744F C79F5B00 
+  C69C2729 2F815376 A69E2CAD 38E12E35 CE7FCFF2 8572E0C8 BCE1C536 D5161EE1 
+  F5E089A6 DF8A69FE 02B7172E D57F90D4 DB584D76 3C799D02 50301E75 36CB09D6 
+  5C89B6FB D4AA66A2 ED1288B5 4EF09B39 E2878AB1 D79694B8 ED9BE1D0 AA8A0EBA 
+  F257E812 CC091571 C8202728 1AA47B56 82AE6FB8 63126EE7 27BBDE5A D957E0FC 
+  509C5D69 63B329FA FF
+  	quit
+crypto pki certificate chain sdn-network-infra-iwan
+ certificate 480A0CC28BD2078B
+  30820371 30820259 A0030201 02020848 0A0CC28B D2078B30 0D06092A 864886F7 
+  0D01010D 0500301F 311D301B 06035504 030C1473 646E2D6E 6574776F 726B2D69 
+  6E667261 2D636130 1E170D32 35303831 39303734 3931375A 170D3236 30383139 
+  30373439 31375A30 51311630 1406092A 864886F7 0D010902 0C074C41 422D574C 
+  43313730 35060355 04030C2E 43393830 302D434C 2D4B395F 39583834 584B304B 
+  5458545F 73646E2D 6E657477 6F726B2D 696E6672 612D6977 616E3082 0122300D 
+  06092A86 4886F70D 01010105 00038201 0F003082 010A0282 01010089 3A1CAEFF 
+  FE114CB3 0CDF79CD 2763FA4F 641FF31A BFF874BD C55D40B5 034E666D 0EBBF71B 
+  BF7DC748 2B164B9B 6301158B C7368587 FA9EED37 23CA8D68 7EEAF5CD CE9DACE4 
+  39357BB9 67A5837B 40AC3DCF BEC4DDF6 5DDDB9F7 8FCDAED1 FEF6F76D C4EA89AF 
+  9D930C16 A12DCED9 BBAFBED8 620C9BAF 037017DF 8D328B1D 8987FD22 A285347B 
+  6BE0BEAD 8FB3F1E2 CE8DF2FD DD475DE3 CA2B5EDF FA709546 8F541656 AF54D2A4 
+  BF03E704 2FA660FB CC58D8EF CF016178 A54BAEFE E6E3BB53 C2978751 78668112 
+  7A33A72F 5757B245 333DCF96 6A39DA23 9452190F B25FF6B0 B8335C4E 20789534 
+  AF5A04E8 C489C478 674AFD65 840CACCC 2D61A0C4 66C21AF3 46458F02 03010001 
+  A37F307D 300C0603 551D1301 01FF0402 3000301F 0603551D 23041830 1680146C 
+  22712E5F 3A0E4163 332B1264 E21E5FF0 124B1530 1D060355 1D250416 30140608 
+  2B060105 05070302 06082B06 01050507 0304301D 0603551D 0E041604 14405F45 
+  242E29FF 77B90F75 F6EA4276 C299A2D0 96300E06 03551D0F 0101FF04 04030205 
+  E0300D06 092A8648 86F70D01 010D0500 03820101 00A84B51 5722DF20 D37ADE35 
+  98690D84 B597B68B 2B5EBE76 3121247F 35ACE2B5 156E126A E53E495C B44FE031 
+  82CD2220 1840AA2D 4924EE4F 5CF04E90 C3DC0DE6 577DAA30 5E64AD7C 795961E0 
+  BCF3DDEC A38580D5 CE2E3ADF B0B2E179 AF522E0D FEB7EEDF F688FE26 4B538A2A 
+  3BB3DE6C 3296BCD8 3220ED83 355FE922 02C96145 E1974CBF 33C4F503 80943EF6 
+  38F60D51 40C3C6FF 74122462 DB1F7F3C C15DC647 B16926A5 CCC0FD0D 3B277D9C 
+  0CC9FBE1 D8D36AE6 3573C7AE B7E92E30 FC5B9877 98D14FCC 09ECBFF3 26A9AA0B 
+  3EE6A8B7 A3ECC579 E26E0104 D481CD4F 43C9E7DC AF329E6E 8F483807 249ABDCC 
+  77B68AC1 EB4350D5 08DCCCE0 8C4B678B A957B838 11
+  	quit
+ certificate ca 754153AAC02618BF
+  30820323 3082020B A0030201 02020875 4153AAC0 2618BF30 0D06092A 864886F7 
+  0D01010D 0500301F 311D301B 06035504 030C1473 646E2D6E 6574776F 726B2D69 
+  6E667261 2D636130 1E170D32 34303930 39313635 3131345A 170D3339 30393130 
+  31363531 31345A30 1F311D30 1B060355 04030C14 73646E2D 6E657477 6F726B2D 
+  696E6672 612D6361 30820122 300D0609 2A864886 F70D0101 01050003 82010F00 
+  3082010A 02820101 00F11361 1D6BEAEE B013F34B F4C7B101 3DD2C305 A82E23B3 
+  EC725022 5645559C A06F1A62 5BA58FB7 73822C8D EFCB8E9A 921E67F2 91B04322 
+  BDC76E05 8679CDC7 89B0BB11 7BA319F4 6A733DC4 D31D5BE8 1864E31E 07BD4EA9 
+  6AB404FB DEBBDB9C 2598607D 507ADDA2 2D86414D 8352FE2A 126DC05F E51AD447 
+  323CA937 FA0F32CD 36820211 CB1832B4 13843B01 F0EA58FB C2DB1D43 8C6D56E4 
+  5D43F164 BA7E1ED6 713CB3E9 820058F3 00260E0E 5E77593B 4C8BA66C E7CF4109 
+  B0117677 B9177B86 47E4B0C4 E0AEDA99 8DB6651C 89A22BD3 F16C4839 34D21742 
+  46E97EF1 FE46B286 AD9D7299 387369CE 426C430B 26E9E771 BE4D0D56 AFCA3E5F 
+  BD52EA0E A377290D 5F020301 0001A363 3061300F 0603551D 130101FF 04053003 
+  0101FF30 1F060355 1D230418 30168014 6C22712E 5F3A0E41 63332B12 64E21E5F 
+  F0124B15 301D0603 551D0E04 1604146C 22712E5F 3A0E4163 332B1264 E21E5FF0 
+  124B1530 0E060355 1D0F0101 FF040403 02018630 0D06092A 864886F7 0D01010D 
+  05000382 010100AF 89499B40 5DBBF256 8902FC03 00EB189C 2D349E3E 303B488E 
+  A50932DF 72EE4CB5 43AAB4B9 2C766816 4207428B EA9B11F1 AD25E2EE A5A4A104 
+  25F2935E 83E76E5A 5E5C81AC AAB9FD9C B70D255C 4C9E63DC 9DF53876 FB352973 
+  C02C8111 50CBFD9A 87266EBD CBEA177E 5FB94CEB 118ED256 FCA22D9D 27D8CC5C 
+  DF142F66 4F964C74 B00C8BAB 862277AC E46339F4 0643A3E5 C67CA596 3015D50C 
+  3395179E 05FA0446 880265D0 682EC8C5 594CB862 E447534E FC8FBE1E 725B08FE 
+  52A3A3A9 BC0C7D0E C77D559E C92C513F E5C16109 A3DF9A80 B2398320 785E7D7F 
+  3B6A3C21 2A59CF6E 39BE717C 40EB2596 B6AF1997 14166E8D 96E8B2BB 3C013DC9 
+  1FB6CCE6 4C6E2D
+  	quit
+!
+!
+!
+!
+!
+!
+!
+!
+license udi pid C9800-CL-K9 sn 9X84XK0KTXT
+service-template DEFAULT_LINKSEC_POLICY_MUST_SECURE
+ linksec policy must-secure
+service-template DEFAULT_LINKSEC_POLICY_SHOULD_SECURE
+ linksec policy should-secure
+service-template DEFAULT_CRITICAL_VOICE_TEMPLATE
+ voice vlan
+service-template DEFAULT_CRITICAL_DATA_TEMPLATE
+service-template webauth-global-inactive
+ inactivity-timer 3600 
+service-template Local_Profiling
+ vlan 400
+dot1x system-auth-control
+device classifier
+diagnostic bootup level minimal
+memory free low-watermark processor 161790
+!
+
+et-analytics
+!
+!
+enable secret 9 $9$F5QRgOX.Zt1EGk$JhRTG.PF9cxiTTyaWAR9GsWlHWkGRUoZP0rny4qe65o
+enable password Nipun@123
+!
+username 185e0f27239c mac wlan-profile-name ISB_Vendor description "Gurmeet HK 17 JAN 2 weeks"
+username 1c1bb5e8d348 mac wlan-profile-name ISB_Vendor description "LRC --"
+username 1c427de4fb2f mac wlan-profile-name AnyWLAN description ThakurDyCHIEF
+username 1cc3eb0437c3 mac wlan-profile-name Smart_Devices description "Jyoti Sehgal"
+username 20f478bd1b48 mac wlan-profile-name ISB_Vendor description "Avijit Sen (Sarovar GM)"
+username 24da9bfd5a4f mac wlan-profile-name ISB_Vendor description "Dinesh - AV"
+username 2831663ab12b mac wlan-profile-name ISB_Vendor description "Sarovar EDT Thha"
+username 28395ebef37c mac wlan-profile-name AV_Device description "Audi Magic"
+username 28395ebef39a mac wlan-profile-name AV_Device description "EH02 Magic Info TV"
+username 28395ebef3b7 mac wlan-profile-name AV_Device description "EH01 Magic Info TV"
+username 28395ebef3cc mac wlan-profile-name AV_Device description "Admin Magic"
+username 288eec103123 mac wlan-profile-name ISB_Vendor description rohitAV
+username 2c9d6527a2b3 mac wlan-profile-name Smart_Devices description "Sonia Sharma"
+username 2ca7efae4835 mac wlan-profile-name ISB_Vendor description "Anshul_AV Team"
+username 2cbeeb347519 mac wlan-profile-name ISB_Vendor description "AV-Team Kapil Dev"
+username 2cbeeb985f40 mac wlan-profile-name ISB_Vendor description "AV Varun. Hamirpur"
+username 3050ce65e171 mac wlan-profile-name ISB_Vendor description "Arun Rana AV"
+username 30afce567f15 mac wlan-profile-name ISB_Vendor description Rijwan.CP....
+username 38d57a8ad959 mac wlan-profile-name Unavailable(18) description "62410680 MH13"
+username 3c52a1b59f8c mac wlan-profile-name ISB_Vendor description "Engineering Desk"
+username 3ca2c360b65e mac wlan-profile-name ISB_Vendor description "Dinesh AV"
+username 3cfa06bb2102 mac wlan-profile-name Smart_Devices description "Prof Shiv Dixit X box"
+username 44917ccba5fb mac wlan-profile-name ISB_Vendor description "Service Gate : My gate app"
+username 44917ccba68a mac wlan-profile-name ISB_Vendor description "Service Gate : My gate app"
+username 44917ccba743 mac wlan-profile-name ISB_Vendor description "Main Gate--MY Gate App"
+username 46adf4f75335 mac wlan-profile-name ISB_Vendor description "SAROVAR OFFICE SYSTEM"
+username 484520393181 mac wlan-profile-name Smart_Devices description "Deepan Operation"
+username 488d36a9a156 mac wlan-profile-name Smart_Devices description "Saumya Mam TV"
+username 489be0d38749 mac wlan-profile-name ISB_Vendor description "Atttandance G4S Security Gate-1"
+username 489be0d39061 mac wlan-profile-name ISB_Vendor description "Atttandance G4S Security Gate-2"
+username 489dd12deabc mac wlan-profile-name ISB_Vendor description "Sunil AV"
+username 489dd12deabd mac wlan-profile-name ISB_Vendor description "Sunil AV"
+username 48e7dad28e1d mac wlan-profile-name AV_Device description Shivam
+username 48f17fad8446 mac wlan-profile-name ISB_Vendor description "Sarovar Tainging Manger SHajid"
+username 4c77cba889c8 mac wlan-profile-name Smart_Devices description "Temp-for-AV testing"
+username 4cab4f70df21 mac wlan-profile-name AV_Device description "Pushapagiri Ipad"
+username 4cab4f8086f2 mac wlan-profile-name AV_Device description "Vikramshila ipad"
+username 5029f5405c21 mac wlan-profile-name ISB_Vendor description "Sarovar Anshul Oppof9"
+username 5049b0a20180 mac wlan-profile-name AV_Device
+username 5082d582783c mac wlan-profile-name ISB_Vendor description "Rohit Verma"
+username 50e08571eb89 mac wlan-profile-name ISB_Vendor description "Reception PC"
+username 540e2d274f85 mac wlan-profile-name ISB_Vendor description "PardeepKumar MainGate"
+username 543ad65b8da8 mac wlan-profile-name Smart_Devices description "RAM SIR TV"
+username 5c17cf3df74d mac wlan-profile-name Smart_Devices description "Mr. Kundan (Staff)"
+username 5c1cb96f9671 mac wlan-profile-name ISB_Vendor description "Chahat. 1."
+username 5c50d9c6a6ec mac wlan-profile-name Smart_Devices description "Prof parshuram hotkar"
+username 5c5f67e9f3a9 mac wlan-profile-name AV_Device description AV-OTT-Laptop-2
+username 5c5f67e9f3c2 mac wlan-profile-name AnyWLAN description AVTeam
+username 5c5f67eab55f mac wlan-profile-name AV_Device description "AV Laptop"
+username 5ca6e635ea31 mac wlan-profile-name ISB_Vendor description "Sarovar HR_Ashish Bhagat"
+username 5e5f67eab55f mac wlan-profile-name AV_Device description "AV Laptop"
+username 5ed752b4ac2a mac wlan-profile-name ISB_Vendor description "Anshul AV"
+username 60452e235933 mac wlan-profile-name ISB_Vendor description "Sarovar Reception"
+username 60452e2361fd mac wlan-profile-name ISB_Vendor description "ITCS requested on 9 APR 2024"
+username 60452e263c93 mac wlan-profile-name ISB_Vendor description Sarovar
+username 60452e264b6b mac wlan-profile-name ISB_Vendor description "Sajid Sarovar"
+username 60452e2659f8 mac wlan-profile-name ISB_Vendor description "Sarovar EXehk"
+username 606ee8f5692c mac wlan-profile-name ISB_Vendor description "Sunil thakur EDA"
+username 6427376fb953 mac wlan-profile-name ISB_Vendor description "Sarovar HR office"
+username 6427376fb969 mac wlan-profile-name ISB_Vendor description "Mail Room PC"
+username 6427376fb973 mac wlan-profile-name ISB_Vendor description "Anoop FNB Sarover pc"
+username 6427376fb980 mac wlan-profile-name ISB_Vendor description "sarovar_finmgr_moh Asheet Bhagat"
+username 6427376fb986 mac wlan-profile-name ISB_Vendor description "Juju Cafe"
+username 642737d4b061 mac wlan-profile-name ISB_Vendor description "Asheet Sarvoar_finmgr"
+username 646c800ac571 mac wlan-profile-name ISB_Vendor description "Asish Bhagat"
+username 64cc222d1380 mac wlan-profile-name Smart_Devices description "303 FH ragu prof lg tv"
+username 64ff0ae151fe mac wlan-profile-name Smart_Devices description "sr. directot 401"
+username 685d4368d1ca mac wlan-profile-name AV_Device description "AV laptop Wow_facult"
+username 689423028ba9 mac wlan-profile-name ISB_Vendor description "JuJu's Cafe"
+username 68942302930b mac wlan-profile-name ISB_Vendor description "EH-1 reception"
+username 6894230293a5 mac wlan-profile-name ISB_Vendor description "AV Device Software Magic-Info"
+username 68942302970b mac wlan-profile-name ISB_Vendor description "Sarovar FINASST"
+username 6a40f46675fe mac wlan-profile-name ISB_Vendor description Chahat.
+username 6cc7ecf8a094 mac wlan-profile-name ISB_Vendor description "Mr. Gurinder Singh"
+username 6ce5c907b9df mac wlan-profile-name AV_Device description "Jalatrang IPAD 10.0.110.85"
+username 705aac8f7514 mac wlan-profile-name ISB_Vendor description "Mr. Ramesh-Chief Eng."
+username 70b7aa10b669 mac wlan-profile-name ISB_Vendor description Vendor_Har
+username 70bbe91fc6e6 mac wlan-profile-name ISB_Vendor description "Gurmeet SIngh"
+username 70bbe936065a mac wlan-profile-name ISB_Vendor description "Anoop BMS"
+username 70bbe97319a2 mac wlan-profile-name ISB_Vendor description Mr.Gopi-Nipun
+username 70cd0d32bc48 mac wlan-profile-name ISB_Vendor description "SAROVAR OFFICE SYSTEM"
+username 7440bb80442b mac wlan-profile-name ISB_Vendor description sukhwinder
+username 7440bb80442c mac wlan-profile-name ISB_Vendor description "lakhwinder eda sotre"
+username 74f2fa39a476 mac wlan-profile-name ISB_Vendor description "Shivam - Network(RF)"
+username 78af084e5de0 mac wlan-profile-name AV_Device description "Mr. Vivek (AV Team)"
+username 7ac25d0713dd mac wlan-profile-name ISB_Vendor description "Anshul.AV team"
+username 7c6cf06b0767 mac wlan-profile-name ISB_Vendor description "IPAD at GYM"
+username 7c7b1cc322f1 mac wlan-profile-name ISB_Vendor description "Rahul AV"
+username 7c8bca1b45ab mac wlan-profile-name ISB_Vendor description "Creche PC"
+username 7cf17ea981e4 mac wlan-profile-name ISB_Vendor description "Sarovar office"
+username 8019349b0596 mac wlan-profile-name AV_Device
+username 80ceb9a4594d mac wlan-profile-name ISB_Vendor description "Tilak AV"
+username 84c9b27d027a mac wlan-profile-name ISB_Vendor description LRC_Chanchal
+username 9009df940705 mac wlan-profile-name ISB_Vendor description "Srikanth Backup eng"
+username 902c09e1941e mac wlan-profile-name ISB_Vendor description "SV1B 102 Req by ITCS"
+username 90df7dbf738d mac wlan-profile-name ISB_Vendor description "Mukesh Front office mgr"
+username 944560445eb6 mac wlan-profile-name ISB_Vendor description Creche-Sakshi
+username 94652dcc98c0 mac wlan-profile-name Smart_Devices description Mr.Tarun-Staff(ASA)
+username 94652df199e6 mac wlan-profile-name ISB_Vendor description "AMPOS till 15 april"
+username 94e96a59931b mac wlan-profile-name AV_Device description "IPAD Odantapuri"
+username 94e979ff11bb mac wlan-profile-name ISB_Vendor description Dr.Rupali
+username 94ee9f0249b1 mac wlan-profile-name Smart_Devices description "Ashish AV"
+username 9809cf721c46 mac wlan-profile-name Smart_Devices description "Ranjeev Bhargwa ONE PLUS"
+username 9ca52510cb0b mac wlan-profile-name ISB_Vendor description "vendor Smart Light"
+username 9ca5251e7fae mac wlan-profile-name ISB_Vendor description "Smart Light at ACAD"
+username 9ca5251ea926 mac wlan-profile-name ISB_Vendor description Testttt
+username 9e6ce8891ab8 mac wlan-profile-name ISB_Vendor description EDA-Basements-PC
+username 9e9d3f7867fd mac wlan-profile-name Smart_Devices description JALTRANGAaa_2022
+username a05950003084 mac wlan-profile-name ISB-GOLDMAN description paarvi_gupta2024@isb.edu
+username a41731655945 mac wlan-profile-name ISB_Vendor description "Sarovar_tm_moh (Sajid Malik"
+username a497b1e04629 mac wlan-profile-name ISB_Vendor description "SAROVAR AMHR MOH (HR)"
+username a67364236f76 mac wlan-profile-name ISB_Vendor description "nitish Iphone"
+username ac397122fa75 mac wlan-profile-name ISB_Vendor description "AnShul Sarovar"
+username ac3eb177d44c mac wlan-profile-name Smart_Devices description StudentID:62410634
+username ac5fea7272c6 mac wlan-profile-name ISB_Vendor description "Rohit - AV team"
+username ac5feaf0d67f mac wlan-profile-name Smart_Devices description "Anshiha rajBIPP oneplus"
+username ac97388b7fdd mac wlan-profile-name AV_Device description "Vallabhi IPAD"
+username ac9738924122 mac wlan-profile-name AV_Device description "Somapura IPAD"
+username acc0486120e7 mac wlan-profile-name ISB_Vendor description Pradeep.Nipun
+username b00a8d602566 mac wlan-profile-name Smart_Devices description "Proffessor melodi"
+username b067b5b1d7af mac wlan-profile-name ISB_Vendor
+username b40a8d602566 mac wlan-profile-name Smart_Devices description "Prof Miladi PS5"
+username b43161bcff29 mac wlan-profile-name ISB_Vendor description "pawankumar avteam"
+username b49cdfc612e6 mac wlan-profile-name AV_Device description "IPAD Nalanda"
+username b4cb57d14199 mac wlan-profile-name ISB_Vendor description golu_approvedbycharn
+username b8a25d9a6393 mac wlan-profile-name ISB_Vendor description "Gurpreet singh Printing room"
+username b8a25dd7a0ed mac wlan-profile-name ISB_Vendor
+username b8a8256b32a8 mac wlan-profile-name ISB_Vendor description "Rizwan Printing"
+username b8c75dd7f613 mac wlan-profile-name ISB_Vendor description "Grocery digital machine"
+username bac1fa37c23d mac wlan-profile-name ISB_Vendor description BMS-PC-Anoop
+username bc3baf8bdd0b mac wlan-profile-name AV_Device description "Ipad Gomti"
+username bc838504feed mac wlan-profile-name AV_Device description "Vallabhi Surface"
+username bc838519a245 mac wlan-profile-name AV_Device
+username bc838519d11d mac wlan-profile-name AV_Device description "Takshashila Surface"
+username bc838519d29e mac wlan-profile-name AV_Device description "Somapura Surface"
+username bc838525218f mac wlan-profile-name AV_Device description "Jagaddala Surface"
+username bc838529af58 mac wlan-profile-name AV_Device description "Vikramshila Surface"
+username bc8385e9c483 mac wlan-profile-name AV_Device description "Pushagiri Surface"
+username bc8385e9c6c9 mac wlan-profile-name AV_Device description "Nalanda Surface"
+username bc855626ea23 mac wlan-profile-name ISB_Vendor description "Sarovar Surys Sarovar"
+username bc855626f063 mac wlan-profile-name ISB_Vendor description "AV Magic system"
+username bc855626f2ee mac wlan-profile-name ISB_Vendor description Sarovar
+username bc855626f2f0 mac wlan-profile-name ISB_Vendor description "EDA basement"
+username bc9ebb6adb83 mac wlan-profile-name Smart_Devices description saumya_sindhwani
+username bcb863823277 mac wlan-profile-name AV_Device description "IPAD Vikramshila"
+username bcb86382a6b5 mac wlan-profile-name AV_Device description "IPAD Vallabhi"
+username bcb86389e13c mac wlan-profile-name AV_Device description "IPAD Somapura"
+username bcb8638b94cf mac wlan-profile-name AV_Device description "IPAD Puspagiri"
+username c0188552ee99 mac wlan-profile-name ISB_Vendor description "Sarovar HK Desk PC2"
+username c0188552ee9d mac wlan-profile-name ISB_Vendor description "sarovar_finexe_moh - Rajendar"
+username c0188552ee9e mac wlan-profile-name ISB_Vendor description "Mail Room PC"
+username c0188552eec1 mac wlan-profile-name ISB_Vendor description "Rajender Sarovar Fin Exe new"
+username c0188552eee0 mac wlan-profile-name ISB_Vendor description "EDA DESK"
+username c0188552ef01 mac wlan-profile-name ISB_Vendor description "House Keeping BH2"
+username c0188552ef2c mac wlan-profile-name AV_Device description "Dheeraj AV"
+username c0188552f47d mac wlan-profile-name ISB_Vendor description "Wellness Center System"
+username c0188579da09 mac wlan-profile-name ISB_Vendor description "Surya Sarovar"
+username c018859241fd mac wlan-profile-name ISB_Vendor description "sarovar_GM_Avijeet PC"
+username c025e9173612 mac wlan-profile-name ISB_Vendor description "Creche PC 2"
+username c0b8838a6867 mac wlan-profile-name AV_Device description AV_Surface
+username c48466b24027 mac wlan-profile-name AV_Device description Ipad_Audi
+username c48466b2599c mac wlan-profile-name AV_Device description "IPAD Takshashila"
+username c89402cd02ff mac wlan-profile-name ISB_Vendor description "surya sarovar"
+username c89402cd037d mac wlan-profile-name ISB_Vendor description "Asheet Bhagat Sarovar new PC"
+username c8fe0f186a45 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username c8fe0f186ac9 mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f186ae5 mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f186d0e mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f186d24 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username c8fe0f186f27 mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f186fa1 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username c8fe0f1870fa mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f18710d mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f18710f mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f18711b mac wlan-profile-name ISB_Vendor description "ASA- Attendance machine"
+username c8fe0f187166 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username c8fe0f19c273 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username c8fe0f19c2a8 mac wlan-profile-name ISB_Vendor description "Attendance device"
+username ccd31e68841c mac wlan-profile-name ISB_Vendor description "SDR EDC Credit card swipe machin"
+username ccd31e68cfe5 mac wlan-profile-name ISB_Vendor description "SDR EDC Credit card swipe machin"
+username d03745f28be1 mac wlan-profile-name ISB_Vendor description "Wellness centre - Doctor"
+username d03faae89408 mac wlan-profile-name ISB_Vendor description "Aman AV"
+username d41a3ffd56f7 mac wlan-profile-name Smart_Devices description FH-001
+username d42fca6ca949 mac wlan-profile-name ISB_Vendor description "Rajesh chief"
+username d4389c811c26 mac wlan-profile-name ISB_Vendor description Munish-ITCS
+username d485643553b7 mac wlan-profile-name AV_Device description "Commercial printer"
+username d4bafa39c631 mac wlan-profile-name ISB_Vendor description "Sunny saloon"
+username d4bed9cc1aba mac wlan-profile-name ISB_Vendor description Sarovar_exegh_moh_Gurmeet
+username d4ecab8032f3 mac wlan-profile-name ISB_Vendor description "Samrat-AV team"
+username d80e2940bdeb mac wlan-profile-name ISB_Vendor description "RAMANA Nipun"
+username d832e3e167ba mac wlan-profile-name ISB_Vendor description "Vikas Kanwar AV"
+username d89c676c7671 mac wlan-profile-name ISB_Vendor description "Deepak Laptop"
+username d8c0a618bf81 mac wlan-profile-name AV_Device description "Nalanda TV"
+username d8c0a618bf89 mac wlan-profile-name AV_Device description "Nalanda Front Screen(Left side)"
+username d8c0a6488f1b mac wlan-profile-name Smart_Devices description "Sashvi-CAS department"
+username dc528554d208 mac wlan-profile-name Smart_Devices description "Abhitesh AV"
+username dcb72ec4cc5e mac wlan-profile-name ISB_Vendor description "Sunny (Printer)"
+username e013b5ab1ea5 mac wlan-profile-name ISB_Vendor description KuldeepSingmaingate
+username e076d01b6b16 mac wlan-profile-name ISB_Vendor description "SDR EDC Credit card swipe machin"
+username e0925c878cbb mac wlan-profile-name ISB-GOLDMAN description "nitish IPhone"
+username e0b9bab5d6d0 mac wlan-profile-name AV_Device description "IPad Ravi Satluj"
+username e0b9baba45bd mac wlan-profile-name AV_Device description "IPad Boardroom"
+username e0b9babcfec1 mac wlan-profile-name AV_Device description "Kosi IP pad"
+username e40cfdadd789 mac wlan-profile-name Smart_Devices description "Sachin AV"
+username e4f1d429e7df mac wlan-profile-name ISB_Vendor description "Mr. Akshay (AV Team)"
+username e85a8b64cb81 mac wlan-profile-name ISB_Vendor description "AV Team - Mr. Snatan"
+username e85a8b8a67c5 mac wlan-profile-name Smart_Devices description Anjali_bharti
+username e88da64dfbd1 mac wlan-profile-name ISB_Vendor description "POS Device at Grocery store"
+username e89eb4060337 mac wlan-profile-name ISB_Vendor description Sarovar_exegh_moh_gurmeet
+username e8f408f592d1 mac wlan-profile-name AV_Device description "Magic info server"
+username ec265158c637 mac wlan-profile-name AV_Device description "Takshashila IP"
+username ec26515c00f8 mac wlan-profile-name AV_Device description "IT-AV (ipad)"
+username ec6c9fc2dc64 mac wlan-profile-name Smart_Devices description JALTRANGA4_2022
+username ec6c9fc2e0dd mac wlan-profile-name AV_Device description "Shankha meeting room PC"
+username ec6c9fc82cef mac wlan-profile-name Smart_Devices description JALTRANGA2_2022
+username ec6c9fc82cf4 mac wlan-profile-name Smart_Devices description JALTRANGA_202
+username ec6c9fc82cf5 mac wlan-profile-name Smart_Devices description JALTRANGA_2022
+username f0a73129c3f7 mac wlan-profile-name ISB_Vendor description "EDA DESK2"
+username f4022353ce30 mac wlan-profile-name ISB_Vendor description Suraj_POS
+username f43bd885a395 mac wlan-profile-name Unavailable(18) description "Nitish PC"
+username f44637971ec2 mac wlan-profile-name Smart_Devices description "Mr. Rohit- Testing (Opera. Devic"
+username f4beec52901f mac wlan-profile-name ISB_Vendor description AV-Amandeep
+username f4cae7885cea mac wlan-profile-name AV_Device description "Audi LG Signage"
+username f4cae7885d4c mac wlan-profile-name AV_Device description "Ratanagiri LG Signage"
+username f4f5db83d0d3 mac wlan-profile-name ISB_Vendor description "Gurmeet sarovar"
+username f84d8961bf77 mac wlan-profile-name Smart_Devices description "class room"
+username fa2015a3fb1b mac wlan-profile-name AV_Device description Shankaracharya
+username fc02963c6aac mac wlan-profile-name ISB_Vendor description "AV-Team Ravi Saini"
+username fc02965ff5e2 mac wlan-profile-name ISB_Vendor description "Varun-AV team"
+username f84288038b12 mac wlan-profile-name ioc
+username 6c410ecdbc0c mac
+username 4c:82:a9:38:49:66 mac wlan-profile-name LAB_access description M.Deepak-
+username 10-5b-ad-3f-ad-4d mac wlan-profile-name LAB_access description S.Puneeth-
+username 94-e7-0b-f8-fc-96 mac wlan-profile-name LAB_access description Ch.Navya-.
+username a86daaabf757 mac wlan-profile-name LAB_access description yash
+username f854f691cb31 mac wlan-profile-name LAB_access description Balu
+username f854.f691.cb31 mac wlan-profile-name LAB_access
+username 90:09:df:90:ce:be mac wlan-profile-name LAB_access
+username b0a460f6323b mac wlan-profile-name LAB_access
+username 9009df90cebe mac aaa attribute list wlan_lobby_access wlan-profile-name BYOD-TEST description Gopi
+username space privilege 15 password 0 Nipun@123
+username Nview privilege 15 secret 9 $9$3EwL2VEL3/ME1k$RAGavlZPdag7rOfp73P3G2icbIbEjbOQm/UpQR73BWA
+username 000c29715189 mac aaa attribute list cmx_000C29715189
+username ajay privilege 15 password 0 Nipun@123
+!
+redundancy
+ mode sso
+!
+crypto engine compliance shield disable
+!
+!
+!
+!
+!
+vlan internal allocation policy ascending
+!
+vlan 10
+ name EMP
+!
+vlan 400
+ name Wireless
+!
+vlan 600
+ name 600
+!
+!
+class-map match-any AVC-Reanchor-Class
+ match protocol cisco-jabber-audio
+ match protocol cisco-jabber-video
+ match protocol webex-media
+ match protocol webex-app-sharing
+ match protocol webex-control
+ match protocol webex-meeting
+ match protocol wifi-calling
+class-map match-any Youtube_Block1_AVC_UI_CLASS
+  description Youtube_Block1_AVC_UI_CLASS UI_policy_DO_NOT_CHANGE
+ match protocol youtube
+!
+!
+policy-map type control subscriber Local_Profiling_Map
+ event identity-update match-all
+  1 class always do-until-failure
+   1 map attribute-to-service table Local_Profiling_Map-param
+!
+policy-map Youtube_Block
+ class Youtube_Block1_AVC_UI_CLASS
+  police cir 8000
+   conform-action drop 
+   exceed-action drop 
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface GigabitEthernet1
+ switchport trunk native vlan 100
+ switchport mode trunk
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet2
+ switchport access vlan 400
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet3
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface Vlan1
+ no ip address
+ no ip proxy-arp
+ shutdown
+ no mop enabled
+ no mop sysid
+!
+interface Vlan400
+ ip address 172.16.0.248 255.255.254.0
+ no ip proxy-arp
+ no mop enabled
+ no mop sysid
+!
+ip default-gateway 172.31.1.100
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip http tls-version TLSv1.3 
+ip http secure-trustpoint LAB-WLC_WLC_TP
+ip http client source-interface Vlan400
+!
+ip route 0.0.0.0 0.0.0.0 172.16.0.100
+ip route 0.0.0.0 0.0.0.0 172.31.1.100 2
+ip ssh bulk-mode 131072
+ip ssh source-interface Vlan400
+ip scp server enable
+!
+ip access-list extended ISE-Posture-redirect
+ 10 permit tcp any any eq www
+ 20 deny udp any any eq bootps
+ 30 deny udp any any eq domain
+ 40 deny ip any host 172.31.1.224
+ip access-list extended MDM_Redirect
+ 10 deny ip any host 172.31.1.224
+ 20 deny ip host 172.31.1.224 any
+ 30 deny udp any any eq domain
+ 40 deny udp any eq domain any
+ 50 permit tcp any any eq www
+ip access-list extended Posture_Compliant_ACL
+ 10 permit tcp any any
+ip access-list extended Posture_Redirect_ACL
+ 10 deny ip any host 172.31.1.224
+ 20 deny ip host 172.31.1.224 any
+ 30 deny udp any any eq domain
+ 40 deny udp any eq domain any
+ 50 permit tcp any any eq www
+ip access-list extended Posture_non-compliant_ACL
+ 10 permit ip host 172.31.1.224 any
+ 20 permit ip any host 172.31.1.224
+ 30 permit udp any any eq domain
+ 40 permit udp any eq domain any
+ 50 deny ip any any
+ip access-list extended Redirect
+ 1 permit tcp any any eq www
+ 2 permit tcp any any eq 443
+ip access-list extended mdm
+ 1 permit tcp any any
+ 2 permit udp any any
+!
+ip radius source-interface Vlan400 
+logging source-interface Vlan400
+logging host 172.16.0.96
+ip access-list standard 10
+ 1 permit 192.168.20.28
+!
+snmp-server group Nview v3 auth read Nview write Nview 
+snmp-server group Nview v3 priv read Nview 
+snmp-server group default v3 priv 
+snmp-server group Utora-agent v3 auth 
+snmp-server view Nview mib-2 included
+snmp-server view Nview cisco included
+snmp-server view Utora-agent cisco included
+snmp-server trap-source Vlan400
+snmp-server enable traps snmp authentication linkdown linkup coldstart warmstart
+snmp-server enable traps vrrp
+snmp-server enable traps pfr
+snmp-server enable traps flowmon
+snmp-server enable traps entity-perf throughput-notif
+snmp-server enable traps wiredguest wired_guest
+snmp-server enable traps wireless bsnMobileStation bsnAutoRF bsnGeneral rogue MESH wireless_mobility RRM SI tunnel
+snmp-server enable traps call-home message-send-fail server-fail
+snmp-server enable traps tty
+snmp-server enable traps casa
+snmp-server enable traps ospf state-change
+snmp-server enable traps ospf errors
+snmp-server enable traps ospf retransmit
+snmp-server enable traps ospf lsa
+snmp-server enable traps ospf cisco-specific state-change nssa-trans-change
+snmp-server enable traps ospf cisco-specific state-change shamlink interface
+snmp-server enable traps ospf cisco-specific state-change shamlink neighbor
+snmp-server enable traps ospf cisco-specific errors
+snmp-server enable traps ospf cisco-specific retransmit
+snmp-server enable traps ospf cisco-specific lsa
+snmp-server enable traps eigrp
+snmp-server enable traps adslline
+snmp-server enable traps vdsl2line
+snmp-server enable traps smart-license
+snmp-server enable traps ethernet evc status create delete
+snmp-server enable traps ether-oam
+snmp-server enable traps ethernet cfm cc mep-up mep-down cross-connect loop config
+snmp-server enable traps ethernet cfm crosscheck mep-missing mep-unknown service-up
+snmp-server enable traps auth-framework sec-violation
+snmp-server enable traps entity-qfp mem-res-thresh throughput-notif
+snmp-server enable traps entity-state
+snmp-server enable traps vtp
+snmp-server enable traps vlancreate
+snmp-server enable traps vlandelete
+snmp-server enable traps bgp cbgp2
+snmp-server enable traps dlsw
+snmp-server enable traps entity-sensor
+snmp-server enable traps resource-policy
+snmp-server enable traps flash insertion removal lowspace
+snmp-server enable traps nhrp nhs
+snmp-server enable traps nhrp nhc
+snmp-server enable traps nhrp nhp
+snmp-server enable traps nhrp quota-exceeded
+snmp-server enable traps ipsla
+snmp-server enable traps cnpd
+snmp-server enable traps entity-diag boot-up-fail hm-test-recover hm-thresh-reached scheduled-test-fail
+snmp-server enable traps cef resource-failure peer-state-change peer-fib-state-change inconsistency
+snmp-server enable traps memory bufferpeak
+snmp-server enable traps config-copy
+snmp-server enable traps config
+snmp-server enable traps config-ctid
+snmp-server enable traps dhcp
+snmp-server enable traps fru-ctrl
+snmp-server enable traps entity
+snmp-server enable traps event-manager
+snmp-server enable traps frame-relay
+snmp-server enable traps frame-relay subif
+snmp-server enable traps pimstdmib neighbor-loss invalid-register invalid-join-prune rp-mapping-change interface-election
+snmp-server enable traps ipmulticast
+snmp-server enable traps ip local pool
+snmp-server enable traps msdp
+snmp-server enable traps mvpn
+snmp-server enable traps ospfv3 state-change
+snmp-server enable traps ospfv3 errors
+snmp-server enable traps pim neighbor-change rp-mapping-change invalid-pim-message
+snmp-server enable traps pppoe
+snmp-server enable traps cpu threshold
+snmp-server enable traps rsvp
+snmp-server enable traps l2tun session
+snmp-server enable traps l2tun pseudowire status
+snmp-server enable traps l2tun tunnel
+snmp-server enable traps aaa_server
+snmp-server enable traps atm subif
+snmp-server enable traps pki
+snmp-server enable traps ike policy add
+snmp-server enable traps ike policy delete
+snmp-server enable traps ike tunnel start
+snmp-server enable traps ike tunnel stop
+snmp-server enable traps ipsec cryptomap add
+snmp-server enable traps ipsec cryptomap delete
+snmp-server enable traps ipsec cryptomap attach
+snmp-server enable traps ipsec cryptomap detach
+snmp-server enable traps ipsec tunnel start
+snmp-server enable traps ipsec tunnel stop
+snmp-server enable traps ipsec too-many-sas
+snmp-server enable traps gdoi gm-start-registration
+snmp-server enable traps gdoi gm-registration-complete
+snmp-server enable traps gdoi gm-re-register
+snmp-server enable traps gdoi gm-rekey-rcvd
+snmp-server enable traps gdoi gm-rekey-fail
+snmp-server enable traps gdoi ks-rekey-pushed
+snmp-server enable traps gdoi gm-incomplete-cfg
+snmp-server enable traps gdoi ks-no-rsa-keys
+snmp-server enable traps gdoi ks-new-registration
+snmp-server enable traps gdoi ks-reg-complete
+snmp-server enable traps gdoi ks-role-change
+snmp-server enable traps gdoi ks-gm-deleted
+snmp-server enable traps gdoi ks-peer-reachable
+snmp-server enable traps gdoi ks-peer-unreachable
+snmp-server enable traps dsp card-status
+snmp-server enable traps dsp oper-state
+snmp-server enable traps dsp video-usage
+snmp-server enable traps dsp video-out-of-resource
+snmp-server enable traps frame-relay multilink bundle-mismatch
+snmp-server enable traps syslog
+snmp-server enable traps mpls rfc ldp
+snmp-server enable traps mpls ldp
+snmp-server enable traps mpls rfc traffic-eng
+snmp-server enable traps mpls traffic-eng
+snmp-server enable traps mpls fast-reroute protected
+snmp-server enable traps bfd
+snmp-server enable traps otn
+snmp-server enable traps pw vc
+snmp-server enable traps lisp
+snmp-server enable traps dial
+snmp-server enable traps sbc adj-status
+snmp-server enable traps sbc blacklist
+snmp-server enable traps sbc congestion-alarm
+snmp-server enable traps sbc h248-ctrlr-status
+snmp-server enable traps sbc media-source
+snmp-server enable traps sbc radius-conn-status
+snmp-server enable traps sbc sla-violation
+snmp-server enable traps sbc sla-violation-rev1
+snmp-server enable traps sbc svc-state
+snmp-server enable traps sbc qos-statistics
+snmp-server enable traps ethernet cfm alarm
+snmp-server enable traps vlan-membership
+snmp-server enable traps alarms informational
+snmp-server enable traps rf
+snmp-server enable traps transceiver all
+snmp-server enable traps bulkstat collection transfer
+snmp-server enable traps vrfmib vrf-up vrf-down vnet-trunk-up vnet-trunk-down
+snmp-server enable traps mpls vpn
+snmp-server enable traps mpls rfc vpn
+snmp-server enable traps voice
+snmp-server host 172.31.1.233 version 3 auth Utora-agent 
+snmp-server host 172.16.0.96 version 3 priv dnac 
+snmp-server host 172.16.0.248 version 3 auth nviewuser 
+snmp-server manager
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+banner login ^CC^C
+!
+line con 0
+ stopbits 1
+line vty 0 4
+ length 0
+ transport input ssh
+line vty 5 15
+ transport input ssh
+!
+!
+!
+!
+!
+!
+!
+telemetry ietf subscription 122
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ble_ltx_ap
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 123
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/dot15_global_config
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 124
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/dot15_global_config
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 125
+ encoding encode-tdl
+ filter tdl-transform ewlc-ble
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 126
+ encoding encode-tdl
+ filter tdl-transform connector-capwap
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 127
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/capwap_data
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 128
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_air_quality
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 129
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_temp
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 130
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_temp
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 60000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 131
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_sensor_status
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 132
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_sensor_status
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 60000
+ receiver ip address 192.168.5.111 8004 protocol cloud-native
+telemetry ietf subscription 750
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/environment_sensor
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1011
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlan_config
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1012
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlanpolicies
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1013
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlanpolicies;policy_profile_name=temp_policy_profile/atfpolicymap
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1014
+ encoding encode-tdl
+ filter nested-uri /services;serviceName=ewlc/policylist
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1016
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/site_tag_config
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1017
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=iosevent/q_flash_fault
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1018
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=iosevent/q_sdcard_fault
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1019
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=iosevent/platform_sensor_state_update
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1020
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=iosevent/install_status
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1051
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlan_config
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1052
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlanpolicies
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1053
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/wlanpolicies;policy_profile_name=temp_policy_profile/atfpolicymap
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1054
+ encoding encode-tdl
+ filter nested-uri /services;serviceName=ewlc/policylist
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 1056
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/site_tag_config
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2011
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlcevent/wsaapevent
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2112
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2113
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/capwap_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2114
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2115
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/capwap_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2116
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/spectrum_aq_table
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2120
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ethernet_if_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2121
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/rrmAPautoRfdot11Data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2122
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/rrm_measurement
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2125
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/emltdApRf
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 17000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2126
+ encoding encode-tdl
+ filter tdl-transform dfsRadarCounters
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2154
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 361000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2155
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ewlcRadioOperBand
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2156
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ewlcRadioOperBand
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2157
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/apdot11SpectrumData
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2158
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/apdot11SpectrumData
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2159
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/cdp_cache_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2160
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/cdp_cache_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2161
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/emltdLradIfLoadParameters
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 300000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2162
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/spectrum_device_table
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2163
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/mesh_tree_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2164
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/mesh_neigh
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 2165
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/mesh_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3011
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/common_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 359000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3012
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/dot11_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3013
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/smMainData
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3014
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/lisp_agent_client_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3016
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/mobility_oper_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 390000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3017
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/sisf_db_mac
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 380000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3111
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/traffic_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 9000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3113
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/client_wsa_info
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3114
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/location_rssi_measurements
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3115
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlcevent/wsaclientscanreportevent
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3211
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlcevent/wsaclientevent
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3212
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/dc_info
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3213
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/dc_info
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 370000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3214
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/policy_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3215
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/policy_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 3216
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/traffic_distribution_airtime_latency
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 4321
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/emltdAaaServersStat
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 4322
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/emltd_sisf_dhcpv4_relay_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5011
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/device_hardware;singleton_id=0?device_system_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5012
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_oper/ha_infra
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5013
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/device_hardware;singleton_id=0/device_inventory
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5015
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/smart_license_state;singleton_id=0/smart_license_usage
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5016
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_oper/ha_infra
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 180000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5017
+ encoding encode-tdl
+ filter nested-uri /services;serviceName=sman_oper/control_process;fru=BINOS_FRU_RP;slotnum=0;baynum=0;chassisnum=1?plat_core_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5018
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/entity_information
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5019
+ encoding encode-tdl
+ filter nested-uri /services;serviceName=ios_oper/platform_component;cname=\"Slot\"?platform_properties
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5020
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_oper/platform_component
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5112
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ios_emul_oper/interface
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5115
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=sman_oper/control_process
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5117
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/client_global_stats_data;singleton_id=0
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5118
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper_emul/emltd_join_count_stat;singleton_id=0
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5119
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/lisp_agent_ms_msg_stats_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 5120
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc/dot11
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6001
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radioWsaInfo
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 900000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6002
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_reset_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 1800000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6004
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/rrmRadSlot
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 1800000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6005
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_oper_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6007
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/rrmCoverage
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 6008
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/feature_usage
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 3000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7000
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/icapApSrvcStats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7001
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/device_analytics_wsa_info
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7002
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/mobility_global_stats
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7003
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/client_rejection_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 30000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7100
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ewlc_afc_ap_resp
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7101
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_oper_ext_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7102
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ewlc_afc_ap_resp
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 7103
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/radio_oper_ext_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 360000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 8882
+ encoding encode-tdl
+ filter tdl-transform trustSecCounterDelta
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 90000
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 9991
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=rogue_oper/rogue_client_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 9992
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=rogue_oper/rogue_data
+ receiver-type protocol
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver name DNAC_ASSURANCE_RECEIVER
+telemetry ietf subscription 476323411
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/rrmAPautoRfdot11Data
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 2160000
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry ietf subscription 476323412
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_sensor_cache
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry ietf subscription 476323413
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/ap_ranging_data
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry ietf subscription 476323414
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=wncloudm_oper/ap_gnss_loc_data
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 2160000
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry ietf subscription 476323417
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlcevent/geo_loc_asc_meas
+ source-address 172.16.0.248
+ stream native
+ update-policy on-change
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry ietf subscription 476323418
+ encoding encode-tdl
+ filter tdl-uri /services;serviceName=ewlc_oper/cdp_cache_data
+ source-address 172.16.0.248
+ stream native
+ update-policy periodic 2160000
+ receiver ip address 192.168.5.111 8184 protocol cloud-native
+telemetry receiver protocol DNAC_ASSURANCE_RECEIVER
+ host ip-address 172.16.0.96 25103
+ protocol tls-native profile sdn-network-infra-iwan
+telemetry transform ewlc-ble
+ input table ble_ltx_ap
+  field admin
+  field capability
+  field scan_config
+  field feature_mode
+  field device_status
+  field profile_ibeacon
+  field profile_eddy_uid
+  field profile_eddy_url
+  field profile_vibeacons
+  field host_data.active_profile
+  join-key ap_mac
+  logical-op and
+  type mandatory
+  uri /services;serviceName=ewlc_oper/ble_ltx_ap
+ operation 1
+  filter 1
+   event on-change
+   field ble_ltx_ap.admin
+   logical-op next or
+   logical-op or
+  filter 2
+   event on-change
+   field ble_ltx_ap.scan_config
+   logical-op next or
+   logical-op or
+  filter 3
+   event on-change
+   field ble_ltx_ap.profile_ibeacon
+   logical-op next or
+   logical-op or
+  filter 4
+   event on-change
+   field ble_ltx_ap.profile_eddy_url
+   logical-op next or
+   logical-op or
+  filter 5
+   event on-change
+   field ble_ltx_ap.profile_eddy_uid
+   logical-op next or
+   logical-op or
+  filter 6
+   event on-change
+   field ble_ltx_ap.profile_vibeacons
+   logical-op next or
+   logical-op or
+  filter 7
+   event on-change
+   field ble_ltx_ap.feature_mode
+   logical-op next or
+   logical-op or
+  filter 8
+   event on-change
+   field ble_ltx_ap.device_status
+   logical-op next or
+   logical-op or
+  filter 9
+   event on-change
+   field ble_ltx_ap.capability
+   logical-op next or
+   logical-op or
+  filter 10
+   condition operator eq
+   condition value BLE_LTX_PROFILE_NO_ADV
+   field ble_ltx_ap.host_data.active_profile
+   logical-op or
+telemetry transform connector-capwap
+ input table capwap_data
+  field name
+  field ip_addr
+  field device_detail.wtp_version.sw_version
+  field device_detail.static_info.ap_capability
+  join-key wtp_mac
+  logical-op and
+  type mandatory
+  uri /services;serviceName=ewlc_oper/capwap_data
+ operation 1
+  filter 1
+   event on-change
+   field capwap_data.name
+   logical-op next or
+   logical-op or
+  filter 2
+   event on-change
+   field capwap_data.ip_addr
+   logical-op next or
+   logical-op or
+  filter 3
+   event on-change
+   field capwap_data.device_detail.wtp_version.sw_version
+   logical-op next or
+   logical-op or
+  filter 4
+   event on-change
+   field capwap_data.device_detail.static_info.ap_capability
+   logical-op next or
+   logical-op or
+telemetry transform dfsRadarCounters
+ input table apdot11RadarData
+  field wtp_mac
+  field radio_slot_id
+  field dfs_cisco_ip_cnt
+  field dfs_triggered_cnt
+  field dfs_serving_rad_cnt
+  field dfs_stats_last_updated
+  join-key radio_slot_key_t
+  logical-op and
+  type mandatory
+  uri /services;serviceName=ewlc_oper/apdot11RadarData
+ operation 1
+  filter 1
+   event on-change
+   field apdot11RadarData.dfs_stats_last_updated
+  output-field 1
+   field apdot11RadarData.dfs_cisco_ip_cnt
+  output-field 2
+   field apdot11RadarData.dfs_triggered_cnt
+  output-field 3
+   field apdot11RadarData.dfs_serving_rad_cnt
+  output-field 4
+   field apdot11RadarData.wtp_mac
+  output-field 5
+   field apdot11RadarData.radio_slot_id
+  output-field 6
+   field apdot11RadarData.dfs_stats_last_updated
+ specified
+telemetry transform trustSecCounterDelta
+ input table cts_rolebased_policy
+  field dst_sgt
+  field src_sgt
+  field sgacl_name
+  field monitor_mode
+  field num_of_sgacl
+  field policy_life_time
+  field total_deny_count
+  field last_updated_time
+  field total_permit_count
+  join-key cts_role_based_policy_key
+  logical-op and
+  type mandatory
+  uri /services;serviceName=ios_emul_oper/cts_rolebased_policy
+ operation 1
+  output-field 1
+   field cts_rolebased_policy.src_sgt
+  output-field 2
+   field cts_rolebased_policy.dst_sgt
+  output-field 3
+   field cts_rolebased_policy.total_permit_count
+   output-op type delta
+  output-field 4
+   field cts_rolebased_policy.total_deny_count
+   output-op type delta
+  output-field 5
+   field cts_rolebased_policy.sgacl_name
+  output-field 6
+   field cts_rolebased_policy.monitor_mode
+  output-field 7
+   field cts_rolebased_policy.num_of_sgacl
+  output-field 8
+   field cts_rolebased_policy.policy_life_time
+  output-field 9
+   field cts_rolebased_policy.last_updated_time
+ specified
+wireless aaa policy default-aaa-policy
+ nas-id option1 ssid
+wireless cts-sxp profile default-sxp-profile
+wireless management trustpoint LAB-WLC_WLC_TP
+wireless management interface Vlan400
+wireless profile airtime-fairness default-atf-policy 0
+wireless profile flex default-flex-profile
+ acl-policy redirect
+  central-webauth
+ description "default flex profile"
+wireless profile mesh default-mesh-profile
+ description "default mesh profile"
+wireless profile multi-bssid default-multi-bssid-profile
+ description "Default multi bssid profile"
+wireless profile radio default-radio-profile
+ description "Preconfigured default radio profile"
+wireless profile policy "lab 1"
+ description "lab 1"
+ vlan MGMT
+ no shutdown
+wireless profile policy BYOD_TEST
+ aaa-override
+ description BYOD_TEST
+ nac
+ vlan MGMT
+ no shutdown
+wireless profile policy LAB-Policy
+ idle-timeout 600
+ ipv4 flow monitor wireless-avc-basic input
+ ipv4 flow monitor wireless-avc-basic output
+ ipv6 flow monitor wireless-avc-basic-ipv6 input
+ ipv6 flow monitor wireless-avc-basic-ipv6 output
+ session-timeout 86400
+ vlan Wireless
+ no shutdown
+wireless profile policy N-MOB-POLICY
+ aaa-override
+ accounting-list Accounting
+ description N-MOB-POLICY
+ nac
+ vlan MGMT
+ no shutdown
+wireless profile policy FTD_Test_SSID
+ description FTD_Test_SSID
+ vlan MGMT
+ no shutdown
+wireless profile policy Client-profile
+ vlan MGMT
+ no shutdown
+wireless profile policy Wireless_Guest
+ aaa-override
+ accounting-list Accounting
+ nac
+ session-timeout 86000
+ vlan MGMT
+ no shutdown
+wireless profile policy LAB_access_policy
+ aaa-override
+ description LAB_access_policy
+ ipv4 dhcp required
+ vlan MGMT
+ no shutdown
+wireless profile policy default-policy-profile
+ aaa-override
+ description "default policy profile"
+ ipv4 flow monitor wireless-avc-basic input
+ ipv4 flow monitor wireless-avc-basic output
+ ipv6 flow monitor wireless-avc-basic-ipv6 input
+ ipv6 flow monitor wireless-avc-basic-ipv6 output
+ nac
+ service-policy input Youtube_Block
+ service-policy output Youtube_Block
+ subscriber-policy-name Local_Profiling_Map
+ vlan MGMT
+ no shutdown
+wireless tag site NET_AP
+ ap-profile NET_AP
+ description NET_AP
+ fabric control-plane default-control-plane
+wireless tag site default-site-tag
+ description "default site tag"
+wireless tag site "default-site -tag"
+ description default-site-tag
+wireless tag policy Test
+ description Test
+wireless tag policy LAB-TAG
+ wlan ISE policy Wireless_Guest
+ wlan LAB policy LAB-Policy
+ wlan BYOD policy LAB-Policy
+ wlan Test policy LAB-Policy
+ wlan N_MOB policy Wireless_Guest
+ wlan Sponsor policy Wireless_Guest
+ wlan Test-web policy LAB-Policy
+ wlan BYOD-TEST policy Wireless_Guest
+ wlan LAB_access policy Wireless_Guest
+ wlan Posture_demo policy Wireless_Guest
+ wlan FTD_Test_SSID policy FTD_Test_SSID
+wireless tag policy default-policy-tag
+ description "default policy-tag"
+ wlan SSID policy LAB-Policy
+wireless tag rf NET_AP
+ 24ghz-rf-policy Low_Client_Density_rf_24gh
+ 5ghz-rf-policy "40 MGH"
+ description NET_AP
+wireless tag rf default-rf-tag
+ description "default RF tag"
+wireless wps rogue network-assurance enable
+wireless mgmt-via-wireless
+wireless wps mfp
+wireless wps mfp ap-impersonation
+wireless fabric control-plane default-control-plane
+ description "default control plane name"
+wireless feature-usage enable
+wireless country IN
+nmsp enable
+urlfilter list MDM
+ action permit
+ url *.google.com
+wlan ISE 3 ISE-Self
+ mac-filtering Authorization
+ radio policy dot11 24ghz
+ radio policy dot11 5ghz
+ no security ft adaptive
+ no security wpa
+ no security wpa wpa2
+ no security wpa wpa2 ciphers aes
+ no security wpa akm dot1x
+ security web-auth authentication-list default
+ security web-auth parameter-map global
+wlan LAB 1 N-LAB
+ band-select
+ security wpa psk set-key ascii 0 Nipun@123
+ no security wpa akm dot1x
+ security wpa akm psk
+ no shutdown
+wlan N_MOB 11 N-Mobile
+ mac-filtering Authorization
+ no security ft adaptive
+ no security wpa
+ no security wpa wpa2
+ no security wpa wpa2 ciphers aes
+ no security wpa akm dot1x
+wlan Hotspot 5 ISE-Hotspot
+ mac-filtering Authorization
+ no security ft adaptive
+ no security wpa
+ no security wpa wpa2
+ no security wpa wpa2 ciphers aes
+ no security wpa akm dot1x
+ security web-auth authentication-list default
+ security web-auth parameter-map global
+wlan Sponsor 4 ISE-Sponsor
+ mac-filtering Authorization
+ no security ft adaptive
+ no security wpa
+ no security wpa wpa2
+ no security wpa wpa2 ciphers aes
+ no security wpa akm dot1x
+ security web-auth authentication-list default
+ security web-auth parameter-map global
+wlan BYOD-DEMO 6 BYOD-DEMO
+ no shutdown
+wlan FTD_Test_SSID 2 FTD_Test_SSID
+ band-select
+ security wpa psk set-key ascii 0 Nipun@123
+ no security wpa akm dot1x
+ security wpa akm psk
+network-assurance enable
+network-assurance icap server port 32626
+network-assurance url https://172.16.0.96
+ap dot11 24ghz rf-profile Low_Client_Density_rf_24gh
+ coverage data rssi threshold -90
+ coverage level 2
+ coverage voice rssi threshold -90
+ description "pre configured Low Client Density rfprofile for 2.4gh radio"
+ high-density rx-sop threshold low
+ rate RATE_12M supported
+ rate RATE_24M supported
+ rate RATE_6M supported
+ tx-power v1 threshold -65
+ no shutdown
+ap dot11 24ghz rf-profile High_Client_Density_rf_24gh
+ description "pre configured High Client Density rfprofile for 2.4gh radio"
+ high-density rx-sop threshold medium
+ rate RATE_11M disable
+ rate RATE_12M mandatory
+ rate RATE_1M disable
+ rate RATE_24M supported
+ rate RATE_2M disable
+ rate RATE_5_5M disable
+ rate RATE_6M disable
+ tx-power min 7
+ no shutdown
+ap dot11 24ghz rf-profile Typical_Client_Density_rf_24gh
+ description "pre configured Typical Client Density rfprofile for 2.4gh radio"
+ rate RATE_11M disable
+ rate RATE_12M mandatory
+ rate RATE_1M disable
+ rate RATE_24M supported
+ rate RATE_2M disable
+ rate RATE_5_5M disable
+ rate RATE_6M disable
+ no shutdown
+ap dot11 24ghz rrm channel dca interval 24
+ap dot11 24ghz SI
+ap dot11 24ghz cleanair alarm air-quality
+ap dot11 24ghz cleanair alarm device
+ap dot11 24ghz cleanair alarm device ble-beacon
+ap dot11 24ghz cleanair alarm device bt-discovery
+ap dot11 24ghz cleanair alarm device bt-link
+ap dot11 24ghz cleanair alarm device canopy
+ap dot11 24ghz cleanair alarm device cont-tx
+ap dot11 24ghz cleanair alarm device dect-like
+ap dot11 24ghz cleanair alarm device fh
+ap dot11 24ghz cleanair alarm device inv
+ap dot11 24ghz cleanair alarm device jammer
+ap dot11 24ghz cleanair alarm device mw-oven
+ap dot11 24ghz cleanair alarm device nonstd
+ap dot11 24ghz cleanair alarm device si_fhss
+ap dot11 24ghz cleanair alarm device superag
+ap dot11 24ghz cleanair alarm device tdd-tx
+ap dot11 24ghz cleanair alarm device video
+ap dot11 24ghz cleanair alarm device wimax-fixed
+ap dot11 24ghz cleanair alarm device wimax-mobile
+ap dot11 24ghz cleanair alarm device xbox
+ap dot11 24ghz cleanair alarm device zigbee
+ap dot11 24ghz cleanair device ble-beacon
+ap dot11 24ghz rate RATE_12M supported
+ap dot11 24ghz rate RATE_24M supported
+ap dot11 24ghz rate RATE_6M supported
+ap dot11 24ghz rssi-check
+ap dot11 6ghz rf-profile default-rf-profile-6ghz
+ description "default rfprofile for 6GHz radio"
+ rate RATE_12M mandatory
+ rate RATE_24M mandatory
+ rate RATE_6M mandatory
+ no shutdown
+ap dot11 5ghz rf-profile Low_Client_Density_rf_5gh
+ coverage data rssi threshold -90
+ coverage level 2
+ coverage voice rssi threshold -90
+ description "pre configured Low Client Density rfprofile for 5gh radio"
+ high-density rx-sop threshold low
+ rate RATE_12M mandatory
+ rate RATE_24M mandatory
+ rate RATE_6M mandatory
+ tx-power v1 threshold -60
+ no shutdown
+ap dot11 5ghz rf-profile High_Client_Density_rf_5gh
+ description "pre configured High Client Density rfprofile for 5gh radio"
+ high-density rx-sop threshold medium
+ rate RATE_12M mandatory
+ rate RATE_24M mandatory
+ rate RATE_6M disable
+ rate RATE_9M disable
+ tx-power min 7
+ tx-power v1 threshold -65
+ no shutdown
+ap dot11 5ghz rf-profile Typical_Client_Density_rf_5gh
+ description "pre configured Typical Density rfprofile for 5gh radio"
+ rate RATE_12M mandatory
+ rate RATE_24M mandatory
+ rate RATE_6M mandatory
+ no shutdown
+ap dot11 5ghz rrm channel dca interval 24
+ap dot11 5ghz SI
+ap dot11 5ghz rrm tpc threshold -50
+ap dot11 5ghz rate RATE_12M mandatory
+ap dot11 5ghz rate RATE_24M mandatory
+ap dot11 5ghz rate RATE_6M mandatory
+ap dot11 6ghz rrm channel dca interval 24
+ap dot11 6ghz rrm monitor measurement 600
+ap country IN
+ap tag persistency enable
+ap cisco-dna token 0 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOjE2NDczLCJjaWQiOjQ3NjMyMzQ3ODAxMDgxNjAwMDAwLCJlcCI6IjE5Mi4xNjguNS4xMTE6ODAwMCIsImlhdCI6MTc1MTYyNjIyN30.-4xbY6kCEOhDbBa8gayThnp_kTxQ7cPca7ERxa-mLso
+no ap dot15 shutdown
+ap tag-source-priority 2 source filter
+ap tag-source-priority 3 source ap
+ap profile default-ap-profile
+ apphost
+ awips
+ awips forensic
+ cisco-dna grpc
+ country IN
+ description "default ap profile"
+ mgmtuser username admin password 0 Nipun@123 secret 0 Nipun@123
+ sensor environment air-quality
+  no shutdown
+ sensor environment temperature
+  no shutdown
+ ssh
+ timezone use-controller
+ap 0849.926f.b100
+ap 6849.926f.48e0
+ policy-tag LAB-TAG
+ap 6849.926f.b100
+ policy-tag LAB-TAG
+ap 6849.926f.c510
+ policy-tag LAB-TAG
+ap 6849.926f.cad0
+ policy-tag LAB-TAG
+ap 6c41.0ecd.bc0c
+ policy-tag LAB-TAG
+ap e8bc.e4ba.2750
+ policy-tag LAB-TAG
+ap e8bc.e4ba.3db0
+ policy-tag LAB-TAG
+trapflags ap crash
+trapflags ap noradiocards
+trapflags ap register
+netconf-yang
+end

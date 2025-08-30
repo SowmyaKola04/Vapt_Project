@@ -1,0 +1,162 @@
+---
+- name: VAPT for Network Devices using Ansible
+  hosts: network_devices
+  connection: network_cli
+  gather_facts: no
+
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+
+    - name: Ensure report directory exists
+      file:
+        path: "{{ vapt_report_dir }}"
+        state: directory
+        recurse: yes
+      delegate_to: localhost
+
+    - name: Collect running configuration
+      ios_command:
+        commands: show running-config
+      register: running_config
+
+    - name: Save running config to report file
+      copy:
+        content: "{{ running_config.stdout[0] }}"
+        dest: "{{ vapt_report_dir }}/running_config.txt"
+      delegate_to: localhost
+
+    - name: Get OS version
+      ios_command:
+        commands: show version
+      register: os_version
+
+    # HARDENING CHECKS
+    - name: Set hardening check facts
+      set_fact:
+        strong_passwords: "{{ 'service password-encryption' in running_config.stdout[0] }}"
+        ssh_enabled: "{{ 'ip ssh' in running_config.stdout[0] }}"
+        snmp_v2_enabled: "{{ 'snmp-server community public' in running_config.stdout[0] }}"
+        http_disabled: "{{ 'no ip http server' in running_config.stdout[0] }}"
+        https_disabled: "{{ 'no ip http secure-server' in running_config.stdout[0] }}"
+        logging_enabled: "{{ 'service timestamps log datetime msec' in running_config.stdout[0] and 'logging buffered' in running_config.stdout[0] }}"
+        ssh_timeout_configured: "{{ 'ip ssh time-out' in running_config.stdout[0] }}"
+        ssh_auth_retries_configured: "{{ 'ip ssh authentication-retries 2' in running_config.stdout[0] }}"
+        udld_enabled: "{{ 'udld enable' in running_config.stdout[0] }}"
+        interface_descriptions: "{{ 'description' in running_config.stdout[0] }}"
+        loop_guard_enabled: "{{ 'spanning-tree guard loop' in running_config.stdout[0] }}"
+        root_guard_enabled: "{{ 'spanning-tree guard root' in running_config.stdout[0] }}"
+        port_security_enabled: "{{ 'switchport port-security' in running_config.stdout[0] }}"
+
+    - name: Check for storm control (switches)
+      set_fact:
+        storm_control_enabled: "{{ 'storm-control' in running_config.stdout[0] }}"
+        idle_timeout_set: "{{ 'exec-timeout' in running_config.stdout[0] }}"
+      when: "'wlc' not in inventory_hostname | lower"
+
+    - name: WLC-specific checks
+      set_fact:
+        wlc_http_disabled: "{{ 'no ip http server' in running_config.stdout[0] }}"
+        wlc_https_enabled: "{{ 'ip http secure-server' in running_config.stdout[0] }}"
+        wlc_idle: "{{ 'idle' in running_config.stdout[0] }}"
+      when: "'wlc' in inventory_hostname | lower"
+
+    - name: Run Nmap scan for open ports
+      shell: "nmap -p {{ nmap_ports }} -T4 {{ ansible_host | default(inventory_hostname) }}"
+      register: nmap_scan
+      delegate_to: localhost
+
+    - name: Save Nmap result to file
+      copy:
+        content: "{{ nmap_scan.stdout }}"
+        dest: "{{ vapt_report_dir }}/nmap.txt"
+      delegate_to: localhost
+
+    # HARDENING SUMMARY REPORT
+    - name: Prepare hardening summary
+      set_fact:
+        hardening_summary: >
+          {{
+            [
+              ["OS Version", (os_version.stdout[0] | regex_search('Cisco IOS.*')) | default("Unknown"), "", ""],
+              ["SSH Enabled", ssh_enabled, (not ssh_enabled) | ternary("line vty 0 4 | transport input ssh | login local", ""), (not ssh_enabled) | ternary("Secure remote access is not possible", "")],
+              ["SNMPv2 Enabled", snmp_v2_enabled, snmp_v2_enabled | ternary("no snmp-server community public | Use SNMPv3", ""), snmp_v2_enabled | ternary("SNMPv2 is insecure and can leak information", "")],
+              ["Strong Passwords", strong_passwords, (not strong_passwords) | ternary("service password-encryption", ""), (not strong_passwords) | ternary("Plaintext passwords are insecure", "")],
+              ["HTTP Disabled", http_disabled, (not http_disabled) | ternary("no ip http server", ""), (not http_disabled) | ternary("HTTP allows unencrypted access", "")],
+              ["HTTPS Disabled", https_disabled, (not https_disabled) | ternary("no ip http secure-server", ""), (not https_disabled) | ternary("Disable if unused", "")],
+              ["Logging Enabled", logging_enabled, (not logging_enabled) | ternary("Enable timestamping and logging", ""), (not logging_enabled) | ternary("Logs are important for auditing", "")],
+              ["SSH Timeout Configured", ssh_timeout_configured, (not ssh_timeout_configured) | ternary("ip ssh time-out 60", ""), (not ssh_timeout_configured) | ternary("Idle SSH sessions may stay open", "")],
+              ["SSH Auth Retries Set", ssh_auth_retries_configured, (not ssh_auth_retries_configured) | ternary("ip ssh authentication-retries 2", ""), (not ssh_auth_retries_configured) | ternary("Default retry count could allow brute force", "")],
+              ["UDLD Enabled", udld_enabled, (not udld_enabled) | ternary("udld enable", ""), (not udld_enabled) | ternary("UDLD prevents unidirectional link issues", "")],
+              ["Interface Descriptions", interface_descriptions, (not interface_descriptions) | ternary("Add description under each interface", ""), (not interface_descriptions) | ternary("Descriptions help with interface identification", "")]
+            ]
+            +
+            ([["Storm Control Enabled", storm_control_enabled, (not storm_control_enabled) | ternary("storm-control broadcast level 1.00", ""), (not storm_control_enabled) | ternary("No storm control can cause broadcast storms", "")],
+              ["Loop Guard Enabled", loop_guard_enabled, (not loop_guard_enabled) | ternary("spanning-tree guard loop", ""), (not loop_guard_enabled) | ternary("Prevents Layer 2 loops", "")],
+              ["Root Guard Enabled", root_guard_enabled, (not root_guard_enabled) | ternary("spanning-tree guard root", ""), (not root_guard_enabled) | ternary("Protects STP root roles", "")],
+              ["Port Security Enabled", port_security_enabled, (not port_security_enabled) | ternary("switchport port-security", ""), (not port_security_enabled) | ternary("Prevents MAC flooding", "")],
+              ["VTY Idle Timeout Set", idle_timeout_set, (not idle_timeout_set) | ternary("line vty 0 4 | exec-timeout 10 0", ""), (not idle_timeout_set) | ternary("Idle sessions may stay active", "")]]
+              if storm_control_enabled is defined else [])
+            +
+            ([["WLC HTTP Disabled", wlc_http_disabled, (not wlc_http_disabled) | ternary("no ip http server", ""), (not wlc_http_disabled) | ternary("HTTP allows unencrypted access", "")],
+              ["WLC HTTPS Enabled", wlc_https_enabled, (not wlc_https_enabled) | ternary("ip http secure-server", ""), (not wlc_https_enabled) | ternary("HTTPS required for secure management", "")],
+              ["WLC Idle Timeout Set", wlc_idle, (not wlc_idle) | ternary("config session-timeout <minutes>", ""), (not wlc_idle) | ternary("Idle WLC sessions should expire", "")]]
+              if 'wlc' in inventory_hostname | lower else [])
+          }}
+
+    - name: Generate Hardening CSV Report
+      copy:
+        dest: "{{ vapt_report_dir }}/hardening_summary.csv"
+        content: |
+          Setting,Status,Recommendation,Reason
+          {% for row in hardening_summary %}
+          {{ row[0] }},{{ row[1] }},{{ row[2] }},{{ row[3] | default('') }}
+          {% endfor %}
+      delegate_to: localhost
+
+    - name: Convert Hardening CSV to Excel
+      shell: |
+        python3 {{ playbook_dir }}/excel.py {{ vapt_report_dir }}/hardening_summary.csv
+      delegate_to: localhost
+
+    # === COMPLIANCE ASSESSMENT (CA) ===
+    - name: Set compliance assessment facts
+      set_fact:
+        ca_banner_configured: "{{ 'banner login' in running_config.stdout[0] }}"
+        ca_ntp_configured: "{{ 'ntp server' in running_config.stdout[0] }}"
+        ca_aaa_enabled: "{{ 'aaa new-model' in running_config.stdout[0] }}"
+        ca_secure_enable_password: "{{ 'enable secret' in running_config.stdout[0] }}"
+        ca_ssh_only: >-
+          {{
+            ('transport input ssh' in running_config.stdout[0]) and
+            ('transport input telnet' not in running_config.stdout[0])
+          }}
+
+    - name: Prepare compliance summary
+      set_fact:
+        compliance_summary: >
+          {{
+            [
+              ["Login Banner Configured", ca_banner_configured, (not ca_banner_configured) | ternary("banner login <text>", ""), (not ca_banner_configured) | ternary("Required for legal warning display", ""), "ISO 27001 A.9.4.2 / CIS 1.2.3"],
+              ["NTP Server Configured", ca_ntp_configured, (not ca_ntp_configured) | ternary("ntp server <ip>", ""), (not ca_ntp_configured) | ternary("Helps with time sync for logs", ""), "ISO 27001 A.12.4.3 / CIS 2.2.1"],
+              ["AAA Enabled", ca_aaa_enabled, (not ca_aaa_enabled) | ternary("aaa new-model", ""), (not ca_aaa_enabled) | ternary("Enables centralized auth control", ""), "ISO 27001 A.9.2 / NIST AC-2"],
+              ["Secure Enable Password", ca_secure_enable_password, (not ca_secure_enable_password) | ternary("enable secret <password>", ""), (not ca_secure_enable_password) | ternary("Enable password must be encrypted", ""), "CIS 4.3.2 / ISO 27001 A.9.2.3"],
+              ["SSH Only Access", ca_ssh_only, (not ca_ssh_only) | ternary("transport input ssh", ""), (not ca_ssh_only) | ternary("Telnet is insecure and should be disabled", ""), "CIS 5.2.1 / PCI-DSS 2.2.2"]
+            ]
+          }}
+
+    - name: Generate Compliance CSV Report
+      copy:
+        dest: "{{ vapt_report_dir }}/compliance_summary.csv"
+        content: |
+          Setting,Status,Recommendation,Reason,Standard
+          {% for row in compliance_summary %}
+          {{ row[0] }},{{ row[1] }},{{ row[2] }},{{ row[3] }},{{ row[4] }}
+          {% endfor %}
+      delegate_to: localhost
+
+    - name: Convert Compliance CSV to Excel
+      shell: |
+        python3 {{ playbook_dir }}/excel.py {{ vapt_report_dir }}/compliance_summary.csv
+      delegate_to: localhost

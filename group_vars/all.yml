@@ -1,0 +1,4 @@
+vapt_base_dir: "./vapt_reports"
+vapt_timestamp: "{{ lookup('pipe', ' TZ=Asia/Kolkata date +%F_%H-%M') }}"
+vapt_report_dir: "{{ vapt_base_dir }}/{{ inventory_hostname }}/{{ vapt_timestamp }}"
+nmap_ports: "1-1024,3389,5900,8080,8443,9000"

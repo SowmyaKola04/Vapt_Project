@@ -1,0 +1,630 @@
+Building configuration...
+
+Current configuration : 16431 bytes
+!
+! Last configuration change at 06:46:59 UTC Fri Aug 8 2025 by admin
+!
+version 17.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service call-home
+platform punt-keepalive disable-kernel-core
+!
+hostname LAB-SW
+!
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+no aaa new-model
+switch 1 provision c9300l-24t-4x
+!
+!
+!
+!
+ip routing
+!
+!
+!
+!
+!
+ip name-server 8.8.8.8 4.2.2.2
+ip domain name nipun.local
+ip dhcp excluded-address 172.31.1.1 172.31.1.150
+ip dhcp excluded-address 172.16.0.1 172.16.0.151
+!
+ip dhcp pool Vlan100
+ network 172.31.1.0 255.255.255.0
+ default-router 172.31.1.100 
+ dns-server 172.16.0.162 8.8.8.8 
+ option 43 hex f104.ac1f.01c8
+!
+ip dhcp pool wireless
+ network 172.31.2.0 255.255.255.0
+ default-router 172.31.2.100 
+ dns-server 172.31.1.157 8.8.8.8 
+ option 43 hex f104.ac1f.018c
+!
+ip dhcp pool vlan400
+ network 172.16.0.0 255.255.254.0
+ default-router 172.16.0.100 
+ dns-server 8.8.8.8 4.2.2.2 172.16.8.25 
+ lease 1 23 59
+!
+ip dhcp pool Wireless_Guest
+ network 172.31.3.0 255.255.255.0
+ dns-server 172.31.1.157 8.8.8.8 
+ default-router 172.31.3.100 
+ option 43 hex f104.ac1f.018c
+!
+ip dhcp pool vlan10-Employee
+ network 172.16.8.0 255.255.255.192
+ default-router 172.16.8.1 
+ dns-server 172.16.0.10 172.16.0.153 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan20-HR-AND-Admin
+ network 172.16.8.128 255.255.255.192
+ default-router 172.16.8.129 
+ dns-server 172.16.0.10 172.16.0.153 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan30-HR-Sales
+ network 172.16.8.192 255.255.255.192
+ default-router 172.16.8.193 
+ dns-server 172.16.0.10 172.16.0.153 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan35-Quarantine
+ network 172.16.9.0 255.255.255.128
+ default-router 172.16.9.1 
+ dns-server 172.16.0.10 172.16.0.153 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan2019
+ network 10.0.0.0 255.0.0.0
+ default-router 10.255.10.254 
+ dns-server 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan15-Management
+ network 172.16.8.64 255.255.255.192
+ default-router 172.16.8.65 
+ dns-server 172.16.0.10 172.16.0.153 172.16.0.162 8.8.8.8 
+!
+ip dhcp pool vlan70
+ network 172.16.70.0 255.255.255.0
+ dns-server 8.8.8.8 
+ default-router 172.16.70.254 
+!
+ip dhcp pool vlan13
+ network 172.16.72.0 255.255.255.0
+ default-router 172.16.72.1 
+ dns-server 8.8.8.8 
+!
+ip dhcp pool vlan14
+ network 172.16.73.0 255.255.255.0
+ default-router 172.16.73.1 
+ dns-server 8.8.8.8 
+!
+ip dhcp pool vlan80
+ network 10.1.10.0 255.255.255.0
+ default-router 10.1.10.1 
+ dns-server 8.8.8.8 
+!
+!
+!
+login on-success log
+vtp domain ACH
+vtp mode transparent
+vtp version 1
+!
+!
+!
+!
+!
+!
+!
+!
+!
+crypto pki trustpoint SLA-TrustPoint
+ enrollment pkcs12
+ revocation-check crl
+!
+crypto pki trustpoint TP-self-signed-1709707599
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-1709707599
+ revocation-check none
+ rsakeypair TP-self-signed-1709707599
+!
+!
+crypto pki certificate chain SLA-TrustPoint
+ certificate ca 01
+  30820321 30820209 A0030201 02020101 300D0609 2A864886 F70D0101 0B050030 
+  32310E30 0C060355 040A1305 43697363 6F312030 1E060355 04031317 43697363 
+  6F204C69 63656E73 696E6720 526F6F74 20434130 1E170D31 33303533 30313934 
+  3834375A 170D3338 30353330 31393438 34375A30 32310E30 0C060355 040A1305 
+  43697363 6F312030 1E060355 04031317 43697363 6F204C69 63656E73 696E6720 
+  526F6F74 20434130 82012230 0D06092A 864886F7 0D010101 05000382 010F0030 
+  82010A02 82010100 A6BCBD96 131E05F7 145EA72C 2CD686E6 17222EA1 F1EFF64D 
+  CBB4C798 212AA147 C655D8D7 9471380D 8711441E 1AAF071A 9CAE6388 8A38E520 
+  1C394D78 462EF239 C659F715 B98C0A59 5BBB5CBD 0CFEBEA3 700A8BF7 D8F256EE 
+  4AA4E80D DB6FD1C9 60B1FD18 FFC69C96 6FA68957 A2617DE7 104FDC5F EA2956AC 
+  7390A3EB 2B5436AD C847A2C5 DAB553EB 69A9A535 58E9F3E3 C0BD23CF 58BD7188 
+  68E69491 20F320E7 948E71D7 AE3BCC84 F10684C7 4BC8E00F 539BA42B 42C68BB7 
+  C7479096 B4CB2D62 EA2F505D C7B062A4 6811D95B E8250FC4 5D5D5FB8 8F27D191 
+  C55F0D76 61F9A4CD 3D992327 A8BB03BD 4E6D7069 7CBADF8B DF5F4368 95135E44 
+  DFC7C6CF 04DD7FD1 02030100 01A34230 40300E06 03551D0F 0101FF04 04030201 
+  06300F06 03551D13 0101FF04 05300301 01FF301D 0603551D 0E041604 1449DC85 
+  4B3D31E5 1B3E6A17 606AF333 3D3B4C73 E8300D06 092A8648 86F70D01 010B0500 
+  03820101 00507F24 D3932A66 86025D9F E838AE5C 6D4DF6B0 49631C78 240DA905 
+  604EDCDE FF4FED2B 77FC460E CD636FDB DD44681E 3A5673AB 9093D3B1 6C9E3D8B 
+  D98987BF E40CBD9E 1AECA0C2 2189BB5C 8FA85686 CD98B646 5575B146 8DFC66A8 
+  467A3DF4 4D565700 6ADF0F0D CF835015 3C04FF7C 21E878AC 11BA9CD2 55A9232C 
+  7CA7B7E6 C1AF74F6 152E99B7 B1FCF9BB E973DE7F 5BDDEB86 C71E3B49 1765308B 
+  5FB0DA06 B92AFE7F 494E8A9E 07B85737 F3A58BE1 1A48A229 C37C1E69 39F08678 
+  80DDCD16 D6BACECA EEBC7CF9 8428787B 35202CDC 60E4616A B623CDBD 230E3AFB 
+  418616A9 4093E049 4D10AB75 27E86F73 932E35B5 8862FDAE 0275156F 719BB2F0 
+  D697DF7F 28
+  	quit
+crypto pki certificate chain TP-self-signed-1709707599
+ certificate self-signed 01
+  30820330 30820218 A0030201 02020101 300D0609 2A864886 F70D0101 05050030 
+  31312F30 2D060355 04031326 494F532D 53656C66 2D536967 6E65642D 43657274 
+  69666963 6174652D 31373039 37303735 3939301E 170D3235 30313233 30353137 
+  30365A17 0D333530 31323330 35313730 365A3031 312F302D 06035504 03132649 
+  4F532D53 656C662D 5369676E 65642D43 65727469 66696361 74652D31 37303937 
+  30373539 39308201 22300D06 092A8648 86F70D01 01010500 0382010F 00308201 
+  0A028201 0100BD1D 49AE8AE6 D2157BC9 E0CEAACA 5E135C15 2593B83D 1472A02E 
+  FF7E307D ADF7DE51 C6EE34B1 9117CF96 E502735B C1991E33 3D9E14F1 F6FA12E7 
+  16979E55 BB18537E B2543334 C5FFC7D0 FC48E49F 89FDEC54 08D1DF4F DCE7682F 
+  E9FFF485 7DFB2053 55444E02 046853D9 2D21123F E27787C0 9F623CC1 ADEBBF35 
+  1594FC9B 51AA7FA1 BB47D0A6 833FAD7B C7811048 0362F291 63742DB0 F47BD2CA 
+  AA6ECDA6 A922D319 8DA0B1CA 8839DCC6 E1B12086 730F26E7 86DD44FB 53906AE5 
+  8F5DEC9F BFDD6616 CC7DA462 A22C63B0 C027DF24 F497781D 5183E2CC 2B59C2C9 
+  1A28E03B BE12C612 8D99529C 8127F54C 8A144E64 637D3F8C BF49773B 16CABC44 
+  6E87D09E B2E70203 010001A3 53305130 0F060355 1D130101 FF040530 030101FF 
+  301F0603 551D2304 18301680 14A6F7F8 FDA04F39 9E2FB080 E0819244 35C8DE08 
+  B1301D06 03551D0E 04160414 A6F7F8FD A04F399E 2FB080E0 81924435 C8DE08B1 
+  300D0609 2A864886 F70D0101 05050003 82010100 87A0001B B0D2E848 AE2956A1 
+  CD7A6634 D7CB635B 11985BD0 34BB15C9 1A375C62 71FAB4E9 DE5CA39F 286C08AC 
+  32C24C83 CF99233D 6BE33F46 4E75EC11 3BBECFAD 5F1451B9 D4F28817 70DD72A2 
+  FDDFF56D 801809B6 5478A01B AB0BBACD 0B6495CF 259BD21B DC1F4559 966FACA8 
+  9E8B3DB8 2A1C7204 7957B12B 30A28A2E AC805F48 86A01A8D FE7CE423 6980D3A7 
+  349C47C2 6FFA5382 388AC16B D16C7D0C 66265A94 B10E05C5 E0BF6BBF 093FBD04 
+  34487F97 191F0937 260A6F5D A5562563 EFF472E7 145D8290 4668039C CFA88771 
+  D9D55959 DCB19396 88FABAC5 15B47298 CE2F748D E2CE80A6 C2B4F617 96F4A87B 
+  162D7165 0D421A42 77813213 69E7EC26 24F19C9E
+  	quit
+!
+!
+license boot level network-advantage addon dna-advantage
+memory free low-watermark processor 131040
+!
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+!
+!
+username admin privilege 15 password 7 06280631594029485744
+username support privilege 15 password 7 032A521B1301011D1C5A
+username maple secret 9 $9$1oMLpyr6u.B9oU$/GxIlaCfyO8AiINBx8seDluU8nmfA0GeVcRtdzw4GPA
+username nipun privilege 15 secret 9 $9$cAkA8WOuN4VDQU$ltiUsJrmh5HhZCkrc6mF3gs/MSYBwnKZmwVZuN6Ny8g
+username admins password 7 013D0F144E05265E731F1A
+!
+redundancy
+ mode sso
+crypto engine compliance shield disable
+!
+!
+!
+!
+!
+transceiver type all
+ monitoring
+!
+vlan 2 
+!
+vlan 10
+ name Employee
+!
+vlan 13
+ name FTD
+!
+vlan 14
+ name FMC
+!
+vlan 15
+ name management
+!
+vlan 20
+ name HR-AND-Admin
+!
+vlan 29
+ name Quarantine
+!
+vlan 30
+ name Sales
+!
+vlan 50,70-71 
+!
+vlan 100
+ name MGMT
+!
+vlan 200
+ name Wireless
+!
+vlan 300 
+!
+vlan 397
+ name TRP
+!
+vlan 400
+ name wireless
+!
+vlan 450
+ name PnP
+!
+vlan 500
+ name DNAC-PNP-TESTING
+!
+vlan 600
+ name CLient
+!
+vlan 700
+ name auto_700
+!
+vlan 800
+ name auto_800
+!
+vlan 900
+ name auto_900
+!
+vlan 930
+ name TEST-2
+!
+vlan 966
+ name VXLAN
+!
+vlan 1000
+ name Connectedfirewall
+!
+vlan 2016-2017 
+!
+vlan 2019
+ name Test-SDA
+!
+!
+class-map match-any system-cpp-police-ewlc-control
+  description EWLC Control 
+class-map match-any system-cpp-police-topology-control
+  description Topology control
+class-map match-any system-cpp-police-sw-forward
+  description Sw forwarding, L2 LVX data packets, LOGGING, Transit Traffic
+class-map match-any system-cpp-default
+  description EWLC Data, Inter FED Traffic 
+class-map match-any system-cpp-police-sys-data
+  description Openflow, Exception, EGR Exception, NFL Sampled Data, RPF Failed
+class-map match-any system-cpp-police-punt-webauth
+  description Punt Webauth
+class-map match-any system-cpp-police-l2lvx-control
+  description L2 LVX control packets
+class-map match-any system-cpp-police-forus
+  description Forus Address resolution and Forus traffic
+class-map match-any system-cpp-police-multicast-end-station
+  description MCAST END STATION
+class-map match-any system-cpp-police-high-rate-app
+  description High Rate Applications 
+class-map match-any system-cpp-police-multicast
+  description MCAST Data
+class-map match-any system-cpp-police-l2-control
+  description L2 control
+class-map match-any system-cpp-police-dot1x-auth
+  description DOT1X Auth
+class-map match-any system-cpp-police-data
+  description ICMP redirect, ICMP_GEN and BROADCAST
+class-map match-any system-cpp-police-stackwise-virt-control
+  description Stackwise Virtual OOB
+class-map match-any non-client-nrt-class
+class-map match-any system-cpp-police-routing-control
+  description Routing control and Low Latency
+class-map match-any system-cpp-police-protocol-snooping
+  description Protocol snooping
+class-map match-any system-cpp-police-dhcp-snooping
+  description DHCP snooping
+class-map match-any system-cpp-police-ios-routing
+  description L2 control, Topology control, Routing control, Low Latency
+class-map match-any system-cpp-police-system-critical
+  description System Critical and Gold Pkt
+class-map match-any system-cpp-police-ios-feature
+  description ICMPGEN,BROADCAST,ICMP,L2LVXCntrl,ProtoSnoop,PuntWebauth,MCASTData,Transit,DOT1XAuth,Swfwd,LOGGING,L2LVXData,ForusTraffic,ForusARP,McastEndStn,Openflow,Exception,EGRExcption,NflSampled,RpfFailed
+!
+policy-map system-cpp-policy
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.255.2.2 255.255.255.255
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet1/0/1
+ description **UCS-SERVER**
+ switchport trunk native vlan 100
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/2
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/3
+ switchport access vlan 1000
+ switchport mode access
+!
+interface GigabitEthernet1/0/4
+ switchport access vlan 100
+ switchport mode access
+!
+interface GigabitEthernet1/0/5
+ switchport access vlan 1000
+ switchport mode access
+!
+interface GigabitEthernet1/0/6
+ description FTD-FW
+ switchport mode access
+!
+interface GigabitEthernet1/0/7
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/8
+ description **Connected to DNA-C**
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/9
+ description auto_700
+ switchport access vlan 700
+ switchport mode access
+!
+interface GigabitEthernet1/0/10
+ description auto_800
+ switchport access vlan 800
+ switchport mode access
+!
+interface GigabitEthernet1/0/11
+ description **Connected to DNA-CIMC**
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/12
+ description auto_900
+ no switchport
+ ip address 192.168.11.1 255.255.255.0
+!
+interface GigabitEthernet1/0/13
+ description auto_900
+ switchport access vlan 900
+ switchport mode access
+!
+interface GigabitEthernet1/0/14
+ switchport access vlan 14
+ switchport mode access
+!
+interface GigabitEthernet1/0/15
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/16
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/17
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/18
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/19
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/20
+ switchport access vlan 400
+ switchport mode access
+!
+interface GigabitEthernet1/0/21
+ description trunk port automation
+ switchport trunk allowed vlan 700,800,900
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/22
+ switchport trunk allowed vlan 400
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/23
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/24
+ switchport mode trunk
+!
+interface TenGigabitEthernet1/1/1
+!
+interface TenGigabitEthernet1/1/2
+!
+interface TenGigabitEthernet1/1/3
+!
+interface TenGigabitEthernet1/1/4
+!
+interface AppGigabitEthernet1/0/1
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan10
+ ip address 172.16.8.1 255.255.255.192
+!
+interface Vlan13
+ ip address 172.16.72.1 255.255.255.0
+ ip nat inside
+!
+interface Vlan14
+ ip address 172.16.73.1 255.255.255.0
+ ip nat inside
+!
+interface Vlan15
+ ip address 172.16.8.65 255.255.255.192
+ ip nat inside
+!
+interface Vlan20
+ ip address 172.16.8.129 255.255.255.192
+ ip nat inside
+!
+interface Vlan29
+ ip address 172.16.9.1 255.255.255.128
+ ip nat inside
+!
+interface Vlan30
+ ip address 172.16.8.193 255.255.255.192
+ ip nat inside
+!
+interface Vlan50
+ ip address 172.16.50.254 255.255.255.0
+ ip nat inside
+!
+interface Vlan70
+ ip address 172.16.70.254 255.255.255.0
+!
+interface Vlan71
+ ip address 172.16.71.254 255.255.255.0
+!
+interface Vlan100
+ ip address 172.31.1.100 255.255.255.0
+!
+interface Vlan200
+ ip address 172.31.2.100 255.255.255.0
+!
+interface Vlan400
+ ip address 172.16.0.100 255.255.254.0
+ ip helper-address 172.16.0.162
+!
+interface Vlan600
+ ip address 172.31.6.100 255.255.255.0
+ ip helper-address 172.31.1.157
+!
+interface Vlan700
+ description L3_700
+ ip address 10.1.1.1 255.255.255.0
+!
+interface Vlan800
+ description L3_800
+ ip address 10.1.2.1 255.255.255.0
+!
+interface Vlan900
+ description L3_900
+ ip address 10.1.3.1 255.255.255.0
+!
+interface Vlan1000
+ ip address 192.168.193.253 255.255.255.252
+!
+interface Vlan2016
+ ip address 10.255.50.2 255.255.255.252
+ no ip redirects
+!
+interface Vlan2017
+ ip address 10.255.50.6 255.255.255.252
+ no ip redirects
+!
+interface Vlan2019
+ ip address 10.255.10.254 255.255.255.0
+!
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip route 0.0.0.0 0.0.0.0 192.168.193.254 2
+ip route 10.10.10.0 255.255.255.0 192.168.11.2
+ip route 10.10.20.0 255.255.255.0 192.168.11.2
+ip route 172.16.0.246 255.255.255.255 172.16.0.173
+ip route 172.25.0.0 255.255.255.0 172.16.0.187
+ip route 192.168.11.0 255.255.255.0 192.168.11.2
+ip route 192.168.56.102 255.255.255.255 172.16.0.173
+ip ssh version 2
+ip scp server enable
+!
+!
+ip access-list extended NAT_ACL
+ 10 permit ip 172.16.8.0 0.0.0.63 any
+ 20 permit ip 172.16.72.0 0.0.0.255 any
+ 30 permit ip 172.16.73.0 0.0.0.255 any
+ 40 permit ip 172.16.8.64 0.0.0.63 any
+ 50 permit ip 172.16.8.128 0.0.0.63 any
+ 60 permit ip 172.16.9.0 0.0.0.127 any
+ 70 permit ip 172.16.8.192 0.0.0.63 any
+ 80 permit ip 172.16.50.0 0.0.0.255 any
+ 90 permit ip 172.16.70.0 0.0.0.255 any
+ 100 permit ip 172.16.71.0 0.0.0.255 any
+ 110 permit ip 172.31.1.0 0.0.0.255 any
+ 120 permit ip 172.31.2.0 0.0.0.255 any
+ 130 permit ip 172.31.6.0 0.0.0.255 any
+!
+ip access-list extended 101
+ 10 permit ip 172.0.0.0 0.0.0.255 any
+!
+route-map Inside_to_FortiGate permit 10 
+ match ip address 101
+!
+snmp-server group Utora v3 priv write Nipun 
+snmp-server group admin v3 auth 
+snmp-server group NUtora v3 priv 
+snmp-server group #S!tuys v3 priv 
+snmp-server host 172.31.1.233 version 3 priv #S!tuys 
+snmp-server host 172.31.1.233 version 3 auth admin 
+!
+!
+control-plane
+ service-policy input system-cpp-policy
+!
+!
+line con 0
+ stopbits 1
+line vty 0 4
+ login local
+ transport input all
+line vty 5 31
+ login
+ transport input ssh
+!
+call-home
+ ! If contact email address in call-home is configured as sch-smart-licensing@cisco.com
+ ! the email address configured in Cisco Smart License Portal will be used as contact email address to send SCH notifications.
+ contact-email-addr sch-smart-licensing@cisco.com
+ profile "CiscoTAC-1"
+  active
+  destination transport-method http
+!
+!
+!
+!
+!
+!
+end

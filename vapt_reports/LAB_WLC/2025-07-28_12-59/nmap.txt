@@ -1,0 +1,12 @@
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-28 07:29 UTC
+Nmap scan report for 172.16.0.248
+Host is up (0.0048s latency).
+Not shown: 1024 closed tcp ports (conn-refused)
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+443/tcp  open  https
+830/tcp  open  netconf-ssh
+8443/tcp open  https-alt
+
+Nmap done: 1 IP address (1 host up) scanned in 3.46 seconds
